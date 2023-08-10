@@ -1,1 +1,1 @@
-# stastical-oracles
+# statistical-oracles
