@@ -1,0 +1,186 @@
+import enum
+from abc import abstractmethod, ABC
+from typing import Dict, List, Set, Iterable, Iterator
+
+from sflkit.analysis.analysis_type import AnalysisObject, EvaluationResult
+from sflkit.analysis.factory import CombinationFactory, analysis_factory_mapping
+from sflkit.analysis.spectra import Spectrum
+from sflkit.analysis.predicate import Predicate
+from sflkit.model import Scope, EventFile, Model
+from sflkit.runners.run import TestResult
+from sflkitlib.events.event import Event
+
+
+class FeatureValue(enum.Enum):
+    TRUE = 1
+    FALSE = 0
+    UNDEFINED = -1
+
+    def __repr__(self):
+        return self.name
+
+    def __or__(self, other):
+        if isinstance(other, Feature):
+            if other == FeatureValue.TRUE or self == FeatureValue.UNDEFINED:
+                return other
+            else:
+                return self
+        elif isinstance(other, bool):
+            if other:
+                return FeatureValue.TRUE
+            elif self == FeatureValue.UNDEFINED:
+                if other is None:
+                    return FeatureValue.UNDEFINED
+                else:
+                    return FeatureValue.FALSE
+            else:
+                return self
+        else:
+            return self
+
+
+class Feature(ABC):
+    def __init__(self, name: str, analysis: AnalysisObject):
+        self.name = name
+        self.analysis = analysis
+
+    @abstractmethod
+    def default(self):
+        raise NotImplementedError()
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return hasattr(other, "name") and self.name == other.name
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class BinaryFeature(Feature):
+    def default(self):
+        return FeatureValue.FALSE
+
+
+class TertiaryFeature(Feature):
+    def default(self):
+        return FeatureValue.UNDEFINED
+
+
+class FeatureVector:
+    def __init__(
+        self,
+        result: TestResult,
+    ):
+        self.result = result
+        self.features: Dict[Feature, FeatureValue] = dict()
+
+    def get_feature_value(self, feature: Feature) -> FeatureValue:
+        if feature in self.features:
+            return self.features[feature]
+        else:
+            return feature.default()
+
+    def set_feature(self, feature: Feature, value: FeatureValue):
+        if feature not in self.features:
+            self.features[feature] = value
+        else:
+            self.features[feature] = self.features[feature] or value
+
+    def get_features(self) -> Dict[Feature, FeatureValue]:
+        return dict(self.features)
+
+    def vector(self, features: List[Feature]) -> List[FeatureValue]:
+        return [self.get_feature_value(feature_name) for feature_name in features]
+
+    def num_vector(self, features: List[Feature]) -> List[int]:
+        return [value.value for value in self.vector(features)]
+
+    def __repr__(self):
+        return f"{self.result.name}{self.features}"
+
+    def __str__(self):
+        return f"{self.result.name}{self.features}"
+
+
+class FeatureBuilder(CombinationFactory):
+    def __iter__(self):
+        yield from self.feature_vectors.values()
+
+    def __init__(self):
+        super().__init__(list(map(lambda f: f(), analysis_factory_mapping.values())))
+        self.analysis: List[AnalysisObject] = list()
+        self.feature_vectors: Dict[int, FeatureVector] = dict()
+        self.all_features: Set[Feature] = set()
+
+    def get_analysis(self, event, scope: Scope = None) -> List[AnalysisObject]:
+        self.analysis = super().get_analysis(event, scope)
+        self.analysis.append(self)
+        return self.analysis
+
+    @staticmethod
+    def map_evaluation(analysis: Spectrum, id_: int):
+        match analysis.get_last_evaluation(id_):
+            case EvaluationResult.TRUE:
+                return FeatureValue.TRUE
+            case EvaluationResult.FALSE:
+                return FeatureValue.FALSE
+            case True:
+                return FeatureValue.TRUE
+            case False:
+                return FeatureValue.FALSE
+            case _:
+                return FeatureValue.UNDEFINED
+
+    def prepare(self, run_id: int, test_result: TestResult):
+        self.feature_vectors[run_id] = FeatureVector(test_result)
+
+    def hit(self, id_, event, scope=None):
+        event: Event
+        for a in self.analysis:
+            if isinstance(a, Spectrum):
+                feature = BinaryFeature(str(a), a)
+                self.feature_vectors[id_].set_feature(
+                    feature, self.map_evaluation(a, id_)
+                )
+                self.all_features.add(feature)
+            elif isinstance(a, Predicate):
+                feature = TertiaryFeature(str(a), a)
+                self.feature_vectors[id_].set_feature(
+                    feature, self.map_evaluation(a, id_)
+                )
+                self.all_features.add(feature)
+
+
+class Handler:
+    def __init__(self, context: int = 0):
+        self.context = context
+        self.feature_builder = FeatureBuilder()
+        self.model = Model(self.feature_builder)
+
+    @staticmethod
+    def map_result(failing: bool):
+        match failing:
+            case True:
+                return TestResult.FAILING
+            case False:
+                return TestResult.PASSING
+            case _:
+                return TestResult.UNDEFINED
+
+    def handle(self, event_file: EventFile):
+        self.model.prepare(event_file.run_id)
+        self.feature_builder.prepare(
+            event_file.run_id, self.map_result(event_file.failing)
+        )
+        with event_file:
+            for event in event_file.load():
+                event.handle(self.model)
+
+    def handle_files(self, event_files: List[EventFile]):
+        for e in event_files:
+            self.handle(e)
