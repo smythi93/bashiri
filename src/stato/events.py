@@ -3,14 +3,14 @@ import os
 import shutil
 from os import PathLike
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple, Sequence
 
 from sflkit import instrument_config, Config
+from sflkit.model import EventFile
 from sflkit.runners import PytestRunner, InputRunner
 from sflkit.runners.run import TestResult
 from sflkitlib.events import EventType
 
-from tests4py.constants import Environment
 from tests4py.api import run_project
 
 EVENTS = list(map(lambda e: e.name, list(EventType)))
@@ -88,7 +88,7 @@ def convert(test_result: TestResult) -> TestResult:
 def get_t4p_events(
     directory: Path,
     output: Path,
-    tests: List[List[str]],
+    tests: Sequence[Sequence[str] | PathLike],
     label: Optional[TestResult] = None,
 ):
     output.mkdir(parents=True, exist_ok=True)
@@ -96,11 +96,14 @@ def get_t4p_events(
         (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
     for test in tests:
         if label is None:
-            test_result = convert(
-                run_project(directory, test, invoke_oracle=True).test_result
-            )
+            report = run_project(directory, test, invoke_oracle=True)
+            if report.raised:
+                raise report.raised
+            test_result = convert(report.test_result)
         else:
-            run_project(directory, test)
+            report = run_project(directory, test)
+            if report.raised:
+                raise report.raised
             test_result = label
         if os.path.exists(directory / "EVENTS_PATH"):
             shutil.move(
@@ -109,3 +112,18 @@ def get_t4p_events(
                 / test_result.get_dir()
                 / hashlib.md5(" ".join(test).encode("utf8")).hexdigest(),
             )
+
+
+def get_event_files(events: Path) -> Tuple[List[EventFile], List[EventFile]]:
+    failing = [
+        EventFile(events / "failing" / path, run_id, failing=True)
+        for run_id, path in enumerate(os.listdir(events / "failing"), start=0)
+    ]
+    passing = [
+        EventFile(events / "passing" / path, run_id)
+        for run_id, path in enumerate(
+            os.listdir(events / "passing"),
+            start=len(failing),
+        )
+    ]
+    return failing, passing
