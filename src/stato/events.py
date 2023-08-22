@@ -1,10 +1,17 @@
+import hashlib
 import os
+import shutil
 from os import PathLike
+from pathlib import Path
 from typing import List, Dict, Optional
 
 from sflkit import instrument_config, Config
 from sflkit.runners import PytestRunner, InputRunner
+from sflkit.runners.run import TestResult
 from sflkitlib.events import EventType
+
+from tests4py.constants import Environment
+from tests4py.api import run_project
 
 EVENTS = list(map(lambda e: e.name, list(EventType)))
 
@@ -67,3 +74,38 @@ def get_events_systemtests(
         environ = os.environ
     runner = InputRunner(access, passing, failing)
     runner.run(directory=work_dir, output=output, environ=environ)
+
+
+def convert(test_result: TestResult) -> TestResult:
+    if test_result.name == "PASSING":
+        return TestResult.PASSING
+    elif test_result.name == "FAILING":
+        return TestResult.FAILING
+    else:
+        return TestResult.UNDEFINED
+
+
+def get_t4p_events(
+    directory: Path,
+    output: Path,
+    tests: List[List[str]],
+    label: Optional[TestResult] = None,
+):
+    output.mkdir(parents=True, exist_ok=True)
+    for test_result in TestResult:
+        (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
+    for test in tests:
+        if label is None:
+            test_result = convert(
+                run_project(directory, test, invoke_oracle=True).test_result
+            )
+        else:
+            run_project(directory, test)
+            test_result = label
+        if os.path.exists(directory / "EVENTS_PATH"):
+            shutil.move(
+                directory / "EVENTS_PATH",
+                output
+                / test_result.get_dir()
+                / hashlib.md5(" ".join(test).encode("utf8")).hexdigest(),
+            )

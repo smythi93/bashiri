@@ -1,3 +1,4 @@
+import csv
 import os
 import shutil
 from pathlib import Path
@@ -5,11 +6,12 @@ from unittest import TestCase
 
 import tests4py.api as t4p
 from sflkit.model import EventFile
+from sflkit.runners.run import TestResult
 from tests4py.constants import DEFAULT_WORK_DIR
 from tests4py.projects import Project
 
-from statio.events import instrument, get_events_unittests, get_events_systemtests
-from statio.features import Handler
+from stato.events import instrument, get_t4p_events
+from stato.features import Handler
 
 
 class TestFeatures(TestCase):
@@ -35,7 +37,22 @@ class TestFeatures(TestCase):
         report = t4p.compile_project(self.TEST_DIR, sfl=True)
         if report.raised:
             raise report.raised
-        get_events_unittests(self.TEST_DIR, self.EVENTS_DIR, environ=report.env)
+        get_t4p_events(
+            self.TEST_DIR,
+            self.EVENTS_DIR,
+            [
+                ["2", "1", "3"],
+                ["0", "-1", "1"],
+                ["2", "4", "5"],
+                ["63", "125", "64"],
+                ["12", "-3", "-45"],
+                ["2", "3", "1"],
+                ["0", "1", "-1"],
+                ["0", "1", "64"],
+                ["4", "6", "5"],
+                ["-1000", "0", "1000"],
+            ],
+        )
         failing = [
             EventFile(self.EVENTS_DIR / "failing" / path, run_id, failing=True)
             for run_id, path in enumerate(
@@ -52,5 +69,16 @@ class TestFeatures(TestCase):
         handler.handle_files(failing)
         handler.handle_files(passing)
 
-        for feature_vector in handler.feature_builder:
-            print(feature_vector)
+        all_features = list(handler.feature_builder.all_features)
+        print(f"Found {len(all_features)} features")
+        header = ["label"] + [feature.name for feature in all_features]
+
+        with open("data.csv", "w") as fp:
+            writer = csv.DictWriter(fp, fieldnames=header)
+            writer.writeheader()
+            for feature_vector in handler.feature_builder:
+                num_dict = feature_vector.num_dict_vector(all_features)
+                num_dict["label"] = (
+                    1 if feature_vector.result == TestResult.FAILING else 0
+                )
+                writer.writerow(num_dict)

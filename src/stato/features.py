@@ -100,6 +100,18 @@ class FeatureVector:
     def num_vector(self, features: List[Feature]) -> List[int]:
         return [value.value for value in self.vector(features)]
 
+    def dict_vector(self, features: List[Feature]) -> Dict[Feature, FeatureValue]:
+        return {
+            feature_name: self.get_feature_value(feature_name)
+            for feature_name in features
+        }
+
+    def num_dict_vector(self, features: List[Feature]) -> Dict[str, int]:
+        return {
+            feature.name: value.value
+            for feature, value in self.dict_vector(features).items()
+        }
+
     def __repr__(self):
         return f"{self.result.name}{self.features}"
 
@@ -108,7 +120,10 @@ class FeatureVector:
 
 
 class FeatureBuilder(CombinationFactory):
-    def __iter__(self):
+    def __iter__(self) -> FeatureVector:
+        yield from self.feature_vectors.values()
+
+    def __next__(self) -> FeatureVector:
         yield from self.feature_vectors.values()
 
     def __init__(self):
