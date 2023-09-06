@@ -1,6 +1,6 @@
 import enum
 from abc import abstractmethod, ABC
-from typing import Dict, List, Set, Iterable, Iterator
+from typing import Dict, List, Set, Tuple
 
 from sflkit.analysis.analysis_type import AnalysisObject, EvaluationResult
 from sflkit.analysis.factory import CombinationFactory, analysis_factory_mapping
@@ -95,16 +95,13 @@ class FeatureVector:
         return dict(self.features)
 
     def vector(self, features: List[Feature]) -> List[FeatureValue]:
-        return [self.get_feature_value(feature_name) for feature_name in features]
+        return [self.get_feature_value(feature) for feature in features]
 
     def num_vector(self, features: List[Feature]) -> List[int]:
         return [value.value for value in self.vector(features)]
 
     def dict_vector(self, features: List[Feature]) -> Dict[Feature, FeatureValue]:
-        return {
-            feature_name: self.get_feature_value(feature_name)
-            for feature_name in features
-        }
+        return {feature: self.get_feature_value(feature) for feature in features}
 
     def num_dict_vector(self, features: List[Feature]) -> Dict[str, int]:
         return {
@@ -112,11 +109,23 @@ class FeatureVector:
             for feature, value in self.dict_vector(features).items()
         }
 
+    def tuple(self, features: List[Feature]) -> Tuple[Tuple[Feature, FeatureValue]]:
+        return ((feature, self.get_feature_value(feature)) for feature in features)
+
     def __repr__(self):
         return f"{self.result.name}{self.features}"
 
     def __str__(self):
         return f"{self.result.name}{self.features}"
+
+    def __eq__(self, other):
+        if isinstance(other, FeatureVector) and self.result == other.result:
+            for feature in set(self.features.keys()).union(set(other.features.keys())):
+                if self.get_feature_value(feature) != other.get_feature_value(feature):
+                    return False
+            return True
+        else:
+            return False
 
 
 class FeatureBuilder(CombinationFactory):
@@ -125,6 +134,19 @@ class FeatureBuilder(CombinationFactory):
 
     def __next__(self) -> FeatureVector:
         yield from self.feature_vectors.values()
+
+    def __len__(self):
+        return len(self.feature_vectors)
+
+    def run_ids(self):
+        return set(self.feature_vectors.keys())
+
+    def get_vector_by_id(self, run_id: int):
+        return self.feature_vectors.get(run_id, None)
+
+    def remove(self, run_id: int):
+        if run_id in self.feature_vectors:
+            del self.feature_vectors[run_id]
 
     def __init__(self):
         super().__init__(list(map(lambda f: f(), analysis_factory_mapping.values())))
@@ -154,7 +176,7 @@ class FeatureBuilder(CombinationFactory):
     def prepare(self, run_id: int, test_result: TestResult):
         self.feature_vectors[run_id] = FeatureVector(test_result)
 
-    def hit(self, id_, event, scope=None):
+    def hit(self, id_, *args, **kwargs):
         event: Event
         for a in self.analysis:
             if isinstance(a, Spectrum):

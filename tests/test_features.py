@@ -6,10 +6,11 @@ from unittest import TestCase
 
 import tests4py.api as t4p
 from sflkit.runners.run import TestResult
+from tests4py import sfl
 from tests4py.constants import DEFAULT_WORK_DIR
 from tests4py.projects import Project
 
-from stato.events import instrument, get_t4p_events, get_event_files
+from stato.events import T4PEventCollector, OUTPUT
 from stato.features import Handler
 
 
@@ -25,19 +26,15 @@ class TestFeatures(TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(DEFAULT_WORK_DIR, ignore_errors=True)
         shutil.rmtree(self.TMP, ignore_errors=True)
+        shutil.rmtree(OUTPUT, ignore_errors=True)
 
-    def test_middle(self):
-        project: Project = t4p.middle_1
+    def _test_project(self, project: Project):
         project.buggy = True
         report = t4p.checkout_project(project)
         if report.raised:
             raise report.raised
         location = Path(report.location)
-        instrument(
-            location,
-            self.TEST_DIR,
-        )
-        report = t4p.compile_project(self.TEST_DIR, sfl=True)
+        report = sfl.sflkit_instrument(location, self.TEST_DIR)
         if report.raised:
             raise report.raised
         report = t4p.system_generate_project(self.TEST_DIR, self.TRAINING, n=10, p=2)
@@ -49,23 +46,18 @@ class TestFeatures(TestCase):
         if report.raised:
             raise report.raised
         all_features = None
-        for label, base, events in (
-            ("train", self.TRAINING, self.EVENTS_TRAINING),
-            ("eval", self.EVALUATION, self.EVENTS_EVALUATION),
+        for label, base in (
+            (f"train_{project.get_identifier()}", self.TRAINING),
+            (f"eval_{project.get_identifier()}", self.EVALUATION),
         ):
             inputs = []
             for file in os.listdir(base):
                 with open(base / file, "r") as fp:
                     inputs.append(fp.read().split("\n"))
-            get_t4p_events(
-                self.TEST_DIR,
-                events,
-                inputs,
-            )
-            failing, passing = get_event_files(events)
+            collector = T4PEventCollector(self.TEST_DIR)
+            events = collector.get_events(inputs)
             handler = Handler()
-            handler.handle_files(failing)
-            handler.handle_files(passing)
+            handler.handle_files(events)
             if all_features is None:
                 all_features = list(handler.feature_builder.all_features)
                 print(f"Found {len(all_features)} features")
@@ -80,3 +72,24 @@ class TestFeatures(TestCase):
                         1 if feature_vector.result == TestResult.FAILING else 0
                     )
                     writer.writerow(num_dict)
+
+    def test_middle_1(self):
+        self._test_project(t4p.middle_1)
+
+    def test_pysnooper_2(self):
+        self._test_project(t4p.pysnooper_2)
+
+    def test_pysnooper_3(self):
+        self._test_project(t4p.pysnooper_3)
+
+    def test_cookiecutter_2(self):
+        self._test_project(t4p.cookiecutter_2)
+
+    def test_cookiecutter_3(self):
+        self._test_project(t4p.cookiecutter_3)
+
+    def test_fastapi_1(self):
+        self._test_project(t4p.fastapi_1)
+
+    def test_fastapi_2(self):
+        self._test_project(t4p.fastapi_2)
