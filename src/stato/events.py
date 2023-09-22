@@ -1,10 +1,11 @@
 import hashlib
 import os
+import shlex
 import shutil
 from abc import abstractmethod, ABC
 from os import PathLike
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple, Sequence, Any
+from typing import List, Dict, Optional, Sequence, Any
 
 from sflkit import instrument_config, Config
 from sflkit.model import EventFile
@@ -58,6 +59,7 @@ def instrument(src: PathLike, dst: PathLike, excludes: List[str] = None):
 class EventCollector(ABC):
     def __init__(self, work_dir: PathLike):
         self.work_dir = Path(work_dir)
+        self.runs: Dict[str, TestResult] = dict()
 
     @abstractmethod
     def collect(
@@ -138,7 +140,7 @@ class SystemtestEventCollector(EventCollector):
         runner.run(directory=self.work_dir, output=output, environ=self.environ)
 
 
-class T4PEventCollector(EventCollector):
+class Tests4PyEventCollector(EventCollector):
     @staticmethod
     def convert(test_result: TestResult) -> TestResult:
         if test_result.name == "PASSING":
@@ -151,7 +153,7 @@ class T4PEventCollector(EventCollector):
     def collect(
         self,
         output: PathLike,
-        tests: Optional[Sequence[Any]] = None,
+        tests: Optional[Sequence[Any] | str] = None,
         label: Optional[TestResult] = None,
     ):
         output = Path(output)
@@ -159,16 +161,24 @@ class T4PEventCollector(EventCollector):
         for test_result in TestResult:
             (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
         for test in tests:
+            test_input = test
+            if isinstance(test, str):
+                try:
+                    test_input = shlex.split(test)
+                except ValueError:
+                    pass
             if label is None:
-                report = run_project(self.work_dir, test, invoke_oracle=True)
+                report = run_project(self.work_dir, test_input, invoke_oracle=True)
                 if report.raised:
-                    raise report.raised
-                test_result = self.convert(report.test_result)
+                    test_result = TestResult.UNDEFINED
+                else:
+                    test_result = self.convert(report.test_result)
             else:
-                report = run_project(self.work_dir, test)
+                report = run_project(self.work_dir, test_input)
                 if report.raised:
                     raise report.raised
                 test_result = label
+            self.runs[test] = test_result
             if os.path.exists(self.work_dir / "EVENTS_PATH"):
                 shutil.move(
                     self.work_dir / "EVENTS_PATH",

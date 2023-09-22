@@ -10,7 +10,7 @@ from tests4py import sfl
 from tests4py.constants import DEFAULT_WORK_DIR
 from tests4py.projects import Project
 
-from stato.events import T4PEventCollector, OUTPUT
+from stato.events import Tests4PyEventCollector, OUTPUT
 from stato.features import Handler
 
 
@@ -54,12 +54,12 @@ class TestFeatures(TestCase):
             for file in os.listdir(base):
                 with open(base / file, "r") as fp:
                     inputs.append(fp.read().split("\n"))
-            collector = T4PEventCollector(self.TEST_DIR)
+            collector = Tests4PyEventCollector(self.TEST_DIR)
             events = collector.get_events(inputs)
             handler = Handler()
             handler.handle_files(events)
             if all_features is None:
-                all_features = list(handler.feature_builder.all_features)
+                all_features = list(handler.feature_builder.get_all_features())
                 print(f"Found {len(all_features)} features")
             header = ["label"] + [feature.name for feature in all_features]
 

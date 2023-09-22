@@ -60,6 +60,14 @@ class Feature(ABC):
     def __str__(self):
         return self.__repr__()
 
+    def __lt__(self, other):
+        if hasattr(other, "name"):
+            return self.name < other.name
+        else:
+            raise TypeError(
+                f"'<' not supported between instances of '{type(self)}' and '{type(other)}'"
+            )
+
 
 class BinaryFeature(Feature):
     def default(self):
@@ -110,7 +118,7 @@ class FeatureVector:
         }
 
     def tuple(self, features: List[Feature]) -> Tuple[Tuple[Feature, FeatureValue]]:
-        return ((feature, self.get_feature_value(feature)) for feature in features)
+        return tuple((feature, self.get_feature_value(feature)) for feature in features)
 
     def __repr__(self):
         return f"{self.result.name}{self.features}"
@@ -126,6 +134,15 @@ class FeatureVector:
             return True
         else:
             return False
+
+    def difference(self, other, features: List[Feature]):
+        if isinstance(other, FeatureVector):
+            s = 0
+            for feature in features:
+                s += self.get_feature_value(feature) != other.get_feature_value(feature)
+            return s
+        else:
+            return 0
 
 
 class FeatureBuilder(CombinationFactory):
@@ -143,6 +160,12 @@ class FeatureBuilder(CombinationFactory):
 
     def get_vector_by_id(self, run_id: int):
         return self.feature_vectors.get(run_id, None)
+
+    def get_vectors(self) -> List[FeatureVector]:
+        return list(self.feature_vectors.values())
+
+    def get_all_features(self) -> List[Feature]:
+        return sorted(list(self.all_features))
 
     def remove(self, run_id: int):
         if run_id in self.feature_vectors:

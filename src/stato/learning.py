@@ -1,13 +1,13 @@
 import enum
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Collection, Sequence, Tuple, Any, Optional
 
 import pandas as pd
 import shap
 from joblib import dump, load
 from sflkit.runners.run import TestResult
-from sklearn import svm, __all__, tree
+from sklearn import svm, tree
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.neural_network import MLPClassifier
@@ -29,6 +29,7 @@ class Oracle(ABC):
         reducer: FeatureSelection = DefaultSelection(),
         explainer=shap.KernelExplainer,
     ):
+        self.all_features: Sequence[Feature] = list()
         self.model = model
         self.path = path
         self.reducer = reducer
@@ -49,8 +50,10 @@ class Oracle(ABC):
         data = pd.DataFrame(data)
         return data.drop(columns="label"), data["label"]
 
-    def train(self, x_train: pd.DataFrame, y_train: pd.DataFrame):
-        self.model.fit(x_train.to_numpy, y_train.to_numpy)
+    def train(self):
+        self.model.fit(
+            self.reducer.select(self.x_train).to_numpy(), self.y_train.to_numpy()
+        )
         if self.path:
             dump(self.model, str(self.path))
 
@@ -59,17 +62,34 @@ class Oracle(ABC):
         all_features: Sequence[Feature],
         feature_vectors: Collection[FeatureVector],
     ):
+        self.all_features = all_features
         self.x_train, self.y_train = self.prepare_data(all_features, feature_vectors)
-        self.train(self.reducer.select(self.x_train), self.y_train)
+        self.train()
+
+    def evaluate(
+        self,
+        feature_vectors: Collection[FeatureVector],
+        output_dict: bool = False,
+    ):
+        self.x_train, self.y_train = self.prepare_data(
+            self.all_features, feature_vectors
+        )
+        return self.classification_report(
+            self.x_train, self.y_train, output_dict=output_dict
+        )
 
     def classify(self, x: pd.DataFrame) -> Label:
         return Label[int(self.model.predict(x.to_numpy())[0])]
 
-    def evaluate(self, x: pd.DataFrame, y: pd.DataFrame):
+    def accuracy_score(self, x: pd.DataFrame, y: pd.DataFrame):
         return accuracy_score(y.to_numpy(), self.model.predict(x.to_numpy()))
 
-    def report(self, x: pd.DataFrame, y: pd.DataFrame) -> str | dict:
-        return classification_report(y.to_numpy(), self.model.predict(x.to_numpy()))
+    def classification_report(
+        self, x: pd.DataFrame, y: pd.DataFrame, output_dict: bool = False
+    ) -> str | dict:
+        return classification_report(
+            y.to_numpy(), self.model.predict(x.to_numpy()), output_dict=output_dict
+        )
 
     def explain(self, x: pd.DataFrame, out: Optional[os.PathLike] = None):
         x = x.to_numpy()
@@ -83,11 +103,14 @@ class Oracle(ABC):
             if out is not None:
                 shap.save_html(out, plot)
 
-    def improve(self, x: pd.DataFrame, y: pd.DataFrame):
-        self.fit(self.x_train.join(x), self.y_train.join(y))
-
-    def finalize(self):
-        self.fit(self.x_train, self.y_train)
+    def finalize(
+        self,
+        feature_vectors: Collection[FeatureVector],
+    ):
+        x_train, y_train = self.prepare_data(self.all_features, feature_vectors)
+        self.x_train = pd.concat((self.x_train, x_train))
+        self.y_train = pd.concat((self.y_train, y_train))
+        self.train()
 
 
 class SVM(Oracle):
@@ -96,10 +119,10 @@ class SVM(Oracle):
         path: Optional[os.PathLike] = None,
         reducer: FeatureSelection = DefaultSelection(),
     ):
-        if path is None:
-            model = load(str(path))
-        else:
+        if path is None or not os.path.exists(path):
             model = svm.SVC()
+        else:
+            model = load(str(path))
         super().__init__(model=model, path=path, reducer=reducer)
 
 
@@ -110,10 +133,10 @@ class SGD(Oracle):
         reducer: FeatureSelection = DefaultSelection(),
         loss: str = "log_loss",
     ):
-        if path is None:
-            model = load(str(path))
-        else:
+        if path is None or not os.path.exists(path):
             model = SGDClassifier(loss=loss, penalty="l1")
+        else:
+            model = load(str(path))
         super().__init__(model=model, path=path, reducer=reducer)
 
 
@@ -126,10 +149,10 @@ class NeuralNetwork(Oracle):
         solver: str = "lbfgs",
     ):
         # solver: lbfgs, sgd, or adam
-        if path is None:
-            model = load(str(path))
-        else:
+        if path is None or not os.path.exists(path):
             model = MLPClassifier(random_state=random_state, solver=solver)
+        else:
+            model = load(str(path))
         super().__init__(model=model, path=path, reducer=reducer)
 
 
@@ -142,12 +165,12 @@ class DecisionTree(Oracle):
         criterion: str = "log_loss",
     ):
         # criterion: gini or log_loss
-        if path is None:
-            model = load(str(path))
-        else:
+        if path is None or not os.path.exists(path):
             model = tree.DecisionTreeClassifier(
                 random_state=random_state, criterion=criterion
             )
+        else:
+            model = load(str(path))
         super().__init__(
             model=model, path=path, reducer=reducer, explainer=shap.TreeExplainer
         )
