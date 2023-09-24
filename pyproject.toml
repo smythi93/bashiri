@@ -6,14 +6,14 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "obe"
+name = "bashiri"
 version = "0.0.1"
 authors = [
     { name = "Marius Smytzek", email = "marius.smytzek@cispa.de" },
     { name = "Martin Eberlein", email = "ebermart@informatik.hu-berlin.de" },
     { name = "Tural Mammadov", email = "tural.mammadov@cispa.de" },
 ]
-description = "Oracles By Example"
+description = "Oracles from Examples"
 readme = "README.md"
 license = { file = "COPYING" }
 requires-python = ">=3.10"
