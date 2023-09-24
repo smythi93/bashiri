@@ -267,7 +267,7 @@ class RefactoryEventCollector(EventCollector):
                     self.work_dir / "EVENTS_PATH",
                     output
                     / test_result.get_dir()
-                    / hashlib.md5(" ".join(test).encode("utf8")).hexdigest(),
+                    / hashlib.md5(test.encode("utf8")).hexdigest(),
                 )
 
 
