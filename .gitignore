@@ -166,5 +166,10 @@ tmp/
 tmp_tests
 */tmp_events
 tmp_events
-
-
+tmp.py
+*/tmp.py
+dt
+*/dt
+middle.py
+evaluation/refactory/eval
+evaluation/refactory

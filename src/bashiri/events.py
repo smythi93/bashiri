@@ -1,6 +1,4 @@
-import hashlib
 import os
-import shlex
 import shutil
 from abc import abstractmethod, ABC
 from os import PathLike
@@ -12,7 +10,6 @@ from sflkit.model import EventFile
 from sflkit.runners import PytestRunner, InputRunner
 from sflkit.runners.run import TestResult
 from sflkitlib.events import EventType
-from tests4py.api import run_project
 
 EVENTS = list(map(lambda e: e.name, list(EventType)))
 OUTPUT = Path("tmp_events")
@@ -138,51 +135,3 @@ class SystemtestEventCollector(EventCollector):
             self.environ = os.environ
         runner = InputRunner(self.access, passing, failing)
         runner.run(directory=self.work_dir, output=output, environ=self.environ)
-
-
-class Tests4PyEventCollector(EventCollector):
-    @staticmethod
-    def convert(test_result: TestResult) -> TestResult:
-        if test_result.name == "PASSING":
-            return TestResult.PASSING
-        elif test_result.name == "FAILING":
-            return TestResult.FAILING
-        else:
-            return TestResult.UNDEFINED
-
-    def collect(
-        self,
-        output: PathLike,
-        tests: Optional[Sequence[Any] | str] = None,
-        label: Optional[TestResult] = None,
-    ):
-        output = Path(output)
-        output.mkdir(parents=True, exist_ok=True)
-        for test_result in TestResult:
-            (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
-        for test in tests:
-            test_input = test
-            if isinstance(test, str):
-                try:
-                    test_input = shlex.split(test)
-                except ValueError:
-                    pass
-            if label is None:
-                report = run_project(self.work_dir, test_input, invoke_oracle=True)
-                if report.raised:
-                    test_result = TestResult.UNDEFINED
-                else:
-                    test_result = self.convert(report.test_result)
-            else:
-                report = run_project(self.work_dir, test_input)
-                if report.raised:
-                    raise report.raised
-                test_result = label
-            self.runs[test] = test_result
-            if os.path.exists(self.work_dir / "EVENTS_PATH"):
-                shutil.move(
-                    self.work_dir / "EVENTS_PATH",
-                    output
-                    / test_result.get_dir()
-                    / hashlib.md5(" ".join(test).encode("utf8")).hexdigest(),
-                )

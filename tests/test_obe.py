@@ -8,10 +8,10 @@ import tests4py.api as t4p
 from tests4py import sfl
 from tests4py.projects import Project
 
-from stato.events import Tests4PyEventCollector
-from stato.features import Handler
-from stato.feedback import Tests4PyEvaluationFeedbackLoop
-from stato.learning import DecisionTree
+from bashiri.events import Tests4PyEventCollector
+from bashiri.features import Handler
+from bashiri.refinement import Tests4PyEvaluationFeedbackLoop
+from bashiri.learning import DecisionTreeOracle
 
 
 class TestOBE(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestOBE(unittest.TestCase):
             path = Path("dt")
             if path.exists():
                 os.remove(path)
-            oracle = DecisionTree(path=path)
+            oracle = DecisionTreeOracle(path=path)
             oracle.fit(
                 all_features,
                 handler.feature_builder.get_vectors(),
@@ -84,7 +84,7 @@ class TestOBE(unittest.TestCase):
             print(report_eval)
 
             oracle_10 = oracle
-            oracle_100 = DecisionTree(path=path)
+            oracle_100 = DecisionTreeOracle(path=path)
             oracle_100.fit(
                 all_features,
                 handler.feature_builder.get_vectors(),

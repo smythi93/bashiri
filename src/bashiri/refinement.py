@@ -1,4 +1,3 @@
-import logging
 import random
 import string
 from abc import ABC, abstractmethod
@@ -6,12 +5,12 @@ from typing import List, Dict, Tuple, Callable
 
 from sflkit.runners.run import TestResult
 
-from stato.events import EventCollector, Tests4PyEventCollector
-from stato.features import Handler, FeatureVector
-from stato.learning import Oracle, Label
+from bashiri.events import EventCollector
+from bashiri.features import Handler, FeatureVector
+from bashiri.learning import Oracle, Label
 
 
-class FeedbackLoop(ABC):
+class RefinementLoop(ABC):
     def __init__(
         self,
         handler: Handler,
@@ -40,7 +39,7 @@ class FeedbackLoop(ABC):
         self.learned_oracle.finalize(self.new_feature_vectors)
 
 
-class TestGenFeedback(FeedbackLoop, ABC):
+class TestGenRefinement(RefinementLoop, ABC):
     def __init__(
         self,
         handler: Handler,
@@ -94,7 +93,7 @@ class TestGenFeedback(FeedbackLoop, ABC):
             self.update_corpus(args, features)
 
 
-class MutationTestGenFeedback(TestGenFeedback, ABC):
+class MutationTestGenRefinement(TestGenRefinement, ABC):
     def __init__(
         self,
         handler: Handler,
@@ -140,7 +139,7 @@ class MutationTestGenFeedback(TestGenFeedback, ABC):
         pass
 
 
-class StringMutationTestGenFeedback(MutationTestGenFeedback, ABC):
+class StringMutationTestGenRefinement(MutationTestGenRefinement, ABC):
     def __init__(
         self,
         handler: Handler,
@@ -273,7 +272,7 @@ class Seed(str):
         return obj
 
 
-class AFLTestGenFeedback(StringMutationTestGenFeedback, ABC):
+class AFLRefinement(StringMutationTestGenRefinement, ABC):
     def __init__(
         self,
         handler: Handler,
@@ -330,7 +329,7 @@ class AFLTestGenFeedback(StringMutationTestGenFeedback, ABC):
             self.corpus.append((args, features))
 
 
-class AFLFastTestGenFeedback(AFLTestGenFeedback, ABC):
+class AFLFastRefinement(AFLRefinement, ABC):
     def __init__(
         self,
         handler: Handler,
@@ -376,7 +375,7 @@ class AFLFastTestGenFeedback(AFLTestGenFeedback, ABC):
         self.update_frequencies(args, features)
 
 
-class DistanceInterestFeedbackLoop(AFLFastTestGenFeedback, ABC):
+class DifferenceInterestRefinement(AFLFastRefinement, ABC):
     def __init__(
         self,
         handler: Handler,
@@ -415,7 +414,7 @@ class DistanceInterestFeedbackLoop(AFLFastTestGenFeedback, ABC):
         return True
 
 
-class HumanOracleFeedbackLoop(DistanceInterestFeedbackLoop, ABC):
+class HumanOracleRefinement(DifferenceInterestRefinement, ABC):
     YES = ["y", "yes", "1"]
     NO = ["n", "no", "0"]
 
@@ -432,48 +431,3 @@ class HumanOracleFeedbackLoop(DistanceInterestFeedbackLoop, ABC):
             return Label.BUG
         else:
             return Label.NO_BUG
-
-
-class Tests4PyEvaluationFeedbackLoop(DistanceInterestFeedbackLoop):
-    def __init__(
-        self,
-        handler: Handler,
-        oracle: Oracle,
-        seeds: Dict[int, str],
-        collector: EventCollector,
-        iterations: int = 10,
-        gens: int = 10,
-        min_mutations: int = 1,
-        max_mutations: int = 10,
-        exponent: float = 5,
-        threshold: float = 0.05,
-    ):
-        super().__init__(
-            handler,
-            oracle,
-            seeds,
-            collector,
-            iterations=iterations,
-            gens=gens,
-            min_mutations=min_mutations,
-            max_mutations=max_mutations,
-            exponent=exponent,
-            threshold=threshold,
-        )
-        assert isinstance(collector, Tests4PyEventCollector)
-
-    def get_events(self, inputs: List[str]):
-        return self.collector.get_events(
-            inputs,
-        )
-
-    def oracle(self, args: str, features: FeatureVector) -> Label:
-        if args in self.collector.runs:
-            return (
-                Label.BUG
-                if self.collector.runs[args] == TestResult.FAILING
-                else Label.NO_BUG
-            )
-        else:
-            logging.warning(f"cannot find {args} in run")
-        return Label.NO_BUG

@@ -10,8 +10,8 @@ from tests4py import sfl
 from tests4py.constants import DEFAULT_WORK_DIR
 from tests4py.projects import Project
 
-from stato.events import Tests4PyEventCollector, OUTPUT
-from stato.features import Handler
+from bashiri.events import Tests4PyEventCollector, OUTPUT
+from bashiri.features import Handler
 
 
 class TestFeatures(TestCase):

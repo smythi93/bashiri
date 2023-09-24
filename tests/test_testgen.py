@@ -1,13 +1,13 @@
 import unittest
 
-from stato.features import FeatureVector, Handler
-from stato.feedback import StringMutationTestGenFeedback
-from stato.learning import Label
+from bashiri.features import FeatureVector, Handler
+from bashiri.refinement import StringMutationTestGenRefinement
+from bashiri.learning import Label
 
 
 class TestTestGen(unittest.TestCase):
     def test_string(self):
-        class Fuzzer(StringMutationTestGenFeedback):
+        class Fuzzer(StringMutationTestGenRefinement):
             def select(self) -> str:
                 return ""
 

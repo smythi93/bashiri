@@ -1,7 +1,7 @@
 import enum
 import os
 from abc import ABC
-from typing import Collection, Sequence, Tuple, Any, Optional
+from typing import Collection, Sequence, Tuple, Any, Optional, List
 
 import pandas as pd
 import shap
@@ -9,11 +9,11 @@ from joblib import dump, load
 from sflkit.runners.run import TestResult
 from sklearn import svm, tree
 from sklearn.linear_model import SGDClassifier
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.neural_network import MLPClassifier
 
-from stato.features import FeatureVector, Feature
-from stato.reduce import FeatureSelection, DefaultSelection
+from bashiri.features import FeatureVector, Feature
+from bashiri.reduce import FeatureSelection, DefaultSelection
 
 
 class Label(enum.Enum):
@@ -70,12 +70,13 @@ class Oracle(ABC):
         self,
         feature_vectors: Collection[FeatureVector],
         output_dict: bool = False,
-    ):
-        self.x_train, self.y_train = self.prepare_data(
-            self.all_features, feature_vectors
-        )
-        return self.classification_report(
-            self.x_train, self.y_train, output_dict=output_dict
+    ) -> Tuple[str | dict, List[List[int]]]:
+        x_eval, y_eval = self.prepare_data(self.all_features, feature_vectors)
+        return (
+            self.classification_report(x_eval, y_eval, output_dict=output_dict),
+            confusion_matrix(
+                y_eval.to_numpy(), self.model.predict(x_eval.to_numpy())
+            ).tolist(),
         )
 
     def classify(self, x: pd.DataFrame) -> Label:
@@ -113,7 +114,7 @@ class Oracle(ABC):
         self.train()
 
 
-class SVM(Oracle):
+class SVMOracle(Oracle):
     def __init__(
         self,
         path: Optional[os.PathLike] = None,
@@ -126,7 +127,7 @@ class SVM(Oracle):
         super().__init__(model=model, path=path, reducer=reducer)
 
 
-class SGD(Oracle):
+class SGDOracle(Oracle):
     def __init__(
         self,
         path: Optional[os.PathLike] = None,
@@ -140,7 +141,7 @@ class SGD(Oracle):
         super().__init__(model=model, path=path, reducer=reducer)
 
 
-class NeuralNetwork(Oracle):
+class NeuralNetworkOracle(Oracle):
     def __init__(
         self,
         path: Optional[os.PathLike] = None,
@@ -156,7 +157,7 @@ class NeuralNetwork(Oracle):
         super().__init__(model=model, path=path, reducer=reducer)
 
 
-class DecisionTree(Oracle):
+class DecisionTreeOracle(Oracle):
     def __init__(
         self,
         path: Optional[os.PathLike] = None,
