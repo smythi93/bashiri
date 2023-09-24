@@ -1,7 +1,7 @@
 import argparse
 import hashlib
 import json
-import logging
+import logging.handlers
 import os
 import re
 import shutil
@@ -9,9 +9,11 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Optional, Sequence, Any, Dict, Tuple
+from typing import Optional, Sequence, Any, Dict, Tuple, List
 
+import sflkit.logger
 from sflkit.runners.run import TestResult
+from tqdm import tqdm
 
 from bashiri.events import EventCollector, instrument
 from bashiri.features import Handler, FeatureBuilder
@@ -44,12 +46,16 @@ ANS = Path("ans")
 ACCESS = "access.py"
 DST = "tmp.py"
 
-
 EXPECTED_OUTPUTS: Dict[int, Dict[str, Any]] = dict()
-
 RESULTS: Dict[str, Dict[str, Any]] = dict()
 
 FILE_PATTERN = re.compile(r"wrong_(?P<q>\d)_(?P<e>\d{3})\.py")
+TIMEOUT: int = 5
+
+LOGGER = logging.getLogger("refactory")
+HANDLER = logging.handlers.WatchedFileHandler("refactory.log")
+LOGGER.addHandler(HANDLER)
+LOGGER.propagate = False
 
 
 def get_features_from_tests(question: int, tests: Sequence[str]) -> FeatureBuilder:
@@ -62,7 +68,7 @@ def get_features_from_tests(question: int, tests: Sequence[str]) -> FeatureBuild
     return handler.feature_builder
 
 
-def get_features(question: int, path: Path, limit: Optional[int] = None):
+def get_tests(question: int, path: Path, limit: Optional[int] = None) -> List[str]:
     if question not in EXPECTED_OUTPUTS:
         EXPECTED_OUTPUTS[question] = dict()
     # noinspection PyPep8Naming
@@ -78,7 +84,11 @@ def get_features(question: int, path: Path, limit: Optional[int] = None):
         if test not in EXPECTED_OUTPUTS[question]:
             EXPECTED_OUTPUTS[question][test] = eval(expected)
         tests.append(test)
-    return get_features_from_tests(question, tests)
+    return tests
+
+
+def get_features(question: int, path: Path, limit: Optional[int] = None):
+    return get_features_from_tests(question, get_tests(question, path, limit))
 
 
 def get_model(question: int, ans_path):
@@ -87,12 +97,21 @@ def get_model(question: int, ans_path):
     path = Path("dt")
     if path.exists():
         os.remove(path)
-    oracle = DecisionTreeOracle(path=path)
-    oracle.fit(
+    model = DecisionTreeOracle(path=path)
+    model.fit(
         all_features,
         features.get_vectors(),
     )
-    return oracle
+    return model
+
+
+def verify_example(
+    question: int, file: Path, path: Path, limit: Optional[int] = None
+) -> bool:
+    tests = get_tests(question, path, limit=limit)
+    shutil.copy(file, DST)
+    results = [oracle(test, EXPECTED_OUTPUTS[question]) for test in tests]
+    return TestResult.PASSING in results and TestResult.FAILING in results
 
 
 def run_on_example(
@@ -101,16 +120,16 @@ def run_on_example(
     name = f"wrong_{question}_{identifier:03d}"
     path, eval_path = QUESTIONS[question]
     file: Path = path / CODE / "wrong" / f"{name}.py"
-    if file.exists():
-        logging.info(f"Start evaluation of {name}")
+    if file.exists() and verify_example(question, file, path / ANS, limit=limit):
+        LOGGER.info(f"Start evaluation of {name}")
         instrument(file, DST)
-        logging.info(f"Get evaluation features of {name}")
+        LOGGER.info(f"Get evaluation features of {name}")
         eval_features = get_features(question, eval_path, limit=limit)
-        logging.info(f"Get oracle for {name}")
+        LOGGER.info(f"Get oracle for {name}")
         start = time.time()
-        oracle = get_model(question, path / ANS)
+        model = get_model(question, path / ANS)
         timing = time.time() - start
-        report_eval, confusion_matrix = oracle.evaluate(
+        report_eval, confusion_matrix = model.evaluate(
             eval_features.get_vectors(),
             output_dict=True,
         )
@@ -121,6 +140,8 @@ def run_on_example(
         }
         RESULTS[name] = result
         return result
+    else:
+        LOGGER.info(f"Skip evaluation of {name}")
 
 
 def run_on_question(question: int, limit: Optional[int] = None):
@@ -128,7 +149,7 @@ def run_on_question(question: int, limit: Optional[int] = None):
     directory: Path = path / CODE / "wrong"
     result = dict()
     if directory.exists():
-        for file in os.listdir(directory):
+        for file in tqdm(os.listdir(directory)):
             m = FILE_PATTERN.match(file)
             if m:
                 q = int(m.group("q"))
@@ -172,6 +193,7 @@ def main(*args: str, stdout=sys.stdout, stderr=sys.stderr):
         sys.stdout = stdout
     if stderr is not None:
         sys.stderr = stderr
+    sflkit.logger.LOGGER.disabled = True
     args = parse_args(*args)
     result_file = "refactory"
     if args.question is None:
@@ -192,6 +214,33 @@ for question_x in QUESTION_1, QUESTION_2, QUESTION_3, QUESTION_4, QUESTION_5:
         exec(fp.read())
 
 
+def oracle(test: str, expected_results: Dict[str, Any] = None):
+    expected_results = expected_results or dict()
+    try:
+        process = subprocess.run(
+            ["python", ACCESS, test],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        return TestResult.FAILING
+    if process.returncode == 0:
+        try:
+            if test in expected_results:
+                expected = expected_results[test]
+            else:
+                expected = eval(test)
+            if expected == eval(process.stdout.decode("utf8")):
+                return TestResult.PASSING
+            else:
+                return TestResult.FAILING
+        except:
+            return TestResult.FAILING
+    else:
+        return TestResult.FAILING
+
+
 class RefactoryEventCollector(EventCollector):
     def __init__(self, work_dir: os.PathLike, expected_results: Dict[str, Any]):
         super().__init__(work_dir)
@@ -208,25 +257,7 @@ class RefactoryEventCollector(EventCollector):
         for test_result in TestResult:
             (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
         for test in tests:
-            process = subprocess.run(
-                ["python", ACCESS, test],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-            )
-            if process.returncode == 0:
-                try:
-                    if test in self.expected_results:
-                        expected = self.expected_results[test]
-                    else:
-                        expected = eval(test)
-                    if expected == eval(process.stdout.decode("utf8")):
-                        self.runs[test] = TestResult.PASSING
-                    else:
-                        self.runs[test] = TestResult.FAILING
-                except:
-                    self.runs[test] = TestResult.FAILING
-            else:
-                self.runs[test] = TestResult.FAILING
+            self.runs[test] = oracle(test, self.expected_results)
             if label is None:
                 test_result = self.runs[test]
             else:

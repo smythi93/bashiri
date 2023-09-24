@@ -59,7 +59,7 @@ def get_data():
         zif_file.extractall(REFACTORY)
 
 
-def get_rand_int(start=-1000, end=1000) -> int:
+def get_rand_int(start=-257, end=256) -> int:
     return random.randint(start, end)
 
 
@@ -71,7 +71,7 @@ def get_rand_string(min_len=3, max_len=20) -> string:
     return "".join(random.choices(string.printable, k=random.randint(min_len, max_len)))
 
 
-def get_rand_float(start=-1000, end=1000) -> float:
+def get_rand_float(start=-257, end=256) -> float:
     return get_rand_int(start, end) + random.random()
 
 
@@ -175,7 +175,7 @@ def generate_question_5() -> str:
 
 
 # noinspection PyPep8Naming
-def generate_eval_examples(N: int = 200):
+def generate_eval_examples(N: int = 400):
     places = max(3, len(str(N)))
     formatter = f"{{0:0{places}d}}"
     EVAL.mkdir(exist_ok=True)
