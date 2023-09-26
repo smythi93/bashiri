@@ -8,6 +8,9 @@ import time
 from pathlib import Path
 import shlex
 from typing import Optional, Sequence, Any, Dict, List
+
+import sflkit.logger
+import tests4py.logger
 from tqdm import tqdm
 
 import tests4py.api as t4p
@@ -81,13 +84,13 @@ def evaluate_project(project: Project):
             handler.feature_builder.get_vectors(),
         )
         obe_time = time.time() - obe_time
-        report_eval = oracle.evaluate(
+        report_eval, confusion = oracle.evaluate(
             eval_handler.feature_builder.get_vectors(),
             output_dict=True,
         )
         result["eval"] = report_eval
         result["time"] = obe_time
-        print(report_eval)
+        result["confusion"] = confusion
 
         oracle_10 = DecisionTreeOracle(path=path)
         oracle_100 = DecisionTreeOracle(path=path)
@@ -100,61 +103,71 @@ def evaluate_project(project: Project):
             handler.feature_builder.get_vectors(),
         )
 
-        feedback_time_10 = time.time()
-        feedbackloop = Tests4PyEvaluationRefinement(
+        refinement_time_10 = time.time()
+        refinement_loop = Tests4PyEvaluationRefinement(
             handler,
             oracle_10,
-            {i: arguments for i, arguments in enumerate(inputs)},
+            {i: args for i, args in enumerate(inputs)},
             collector,
         )
-        feedbackloop.run()
-        feedback_time_10 = time.time() - feedback_time_10
-        report_10 = oracle.evaluate(
+        refinement_loop.run()
+        refinement_time_10 = time.time() - refinement_time_10
+        report_10, confusion_10 = oracle_10.evaluate(
             eval_handler.feature_builder.get_vectors(), output_dict=True
         )
         result["eval_fb_10"] = report_10
-        result["time_fb_10"] = feedback_time_10
-        result["new_fb_10"] = len(feedbackloop.new_feature_vectors)
+        result["time_fb_10"] = refinement_time_10
+        result["confusion_fb_10"] = refinement_time_10
+        result["new_fb_10"] = len(refinement_loop.new_feature_vectors)
         result["failing_fb_10"] = len(
             list(
                 filter(
                     lambda vector: vector.result == TestResult.FAILING,
-                    feedbackloop.new_feature_vectors,
+                    refinement_loop.new_feature_vectors,
                 )
             )
         )
-        print(report_10)
+        report_10_new, confusion_10_new = oracle.evaluate(
+            refinement_loop.new_feature_vectors, output_dict=True
+        )
+        result["eval_fb_10_new"] = report_10_new
+        result["confusion_fb_10_new"] = confusion_10_new
 
-        feedback_time_100 = time.time()
-        feedbackloop = Tests4PyEvaluationRefinement(
+        refinement_time_100 = time.time()
+        refinement_loop = Tests4PyEvaluationRefinement(
             handler,
             oracle_100,
             {i: arguments for i, arguments in enumerate(inputs)},
             collector,
             gens=100,
         )
-        feedbackloop.run()
-        feedback_time_100 = time.time() - feedback_time_100
-        report_100 = oracle.evaluate(
+        refinement_loop.run()
+        refinement_time_100 = time.time() - refinement_time_100
+        report_100, confusion_100 = oracle.evaluate(
             eval_handler.feature_builder.get_vectors(), output_dict=True
         )
         result["eval_fb_100"] = report_100
-        result["time_fb_100"] = feedback_time_100
-        result["new_fb_100"] = len(feedbackloop.new_feature_vectors)
+        result["time_fb_100"] = refinement_time_100
+        result["confusion_fb_100"] = confusion_100
+        result["new_fb_100"] = len(refinement_loop.new_feature_vectors)
         result["failing_fb_100"] = len(
             list(
                 filter(
                     lambda vector: vector.result == TestResult.FAILING,
-                    feedbackloop.new_feature_vectors,
+                    refinement_loop.new_feature_vectors,
                 )
             )
         )
-        print(report_100)
+        report_100_new, confusion_100_new = oracle.evaluate(
+            refinement_loop.new_feature_vectors, output_dict=True
+        )
+        result["eval_fb_100_new"] = report_100_new
+        result["confusion_fb_100_new"] = confusion_100_new
 
         results[f"tests_{t}_failing_{f}"] = result
 
     with open(f"{project.get_identifier()}.json", "w") as fp:
-        json.dump(results, fp)
+        json.dump(results, fp, indent=2)
 
 
 class Tests4PyEventCollector(EventCollector):
@@ -257,6 +270,8 @@ def main(project_name: str, bug_id: int):
 
 
 if __name__ == "__main__":
+    tests4py.logger.LOGGER.disabled = True
+    sflkit.logger.LOGGER.disabled = True
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument(
         "-p",
@@ -271,5 +286,5 @@ if __name__ == "__main__":
         required=True,
         help="The bug id of the project to evaluate",
     )
-    args = arg_parser.parse_args()
-    main(args.project_name, args.bug_id)
+    arguments = arg_parser.parse_args()
+    main(arguments.project_name, arguments.bug_id)

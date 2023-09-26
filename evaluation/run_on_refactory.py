@@ -50,7 +50,7 @@ EXPECTED_OUTPUTS: Dict[int, Dict[str, Any]] = dict()
 RESULTS: Dict[str, Dict[str, Any]] = dict()
 
 FILE_PATTERN = re.compile(r"wrong_(?P<q>\d)_(?P<e>\d{3})\.py")
-TIMEOUT: int = 5
+TIMEOUT: int = 2
 
 LOGGER = logging.getLogger("refactory")
 HANDLER = logging.handlers.WatchedFileHandler("refactory.log")

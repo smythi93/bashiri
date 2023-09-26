@@ -1,2 +1,4 @@
 tqdm>=4.66.1
 wget>=3.2
+tests4py>=0.0.5
+sflkit>=0.2.12
