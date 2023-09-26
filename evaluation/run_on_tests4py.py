@@ -35,8 +35,8 @@ EVENTS_EVALUATION = EVENTS_DIR / "eval"
 TRAINING = TMP / "train"
 EVALUATION = TMP / "eval"
 
-N = 2
-F = 1
+N = 200
+F = 100
 RLS = [10, 100]
 SEED = 42
 
