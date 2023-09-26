@@ -33,12 +33,12 @@ class Confusion:
     def __add__(self, other):
         assert isinstance(other, Confusion)
         return Confusion(
-            self.tp + other.tp,
-            self.fp + other.fp,
-            self.fn + other.fn,
-            self.tn + other.tn,
-            self.perfect + other.perfect,
-            self.total + other.total,
+            tp=self.tp + other.tp,
+            fn=self.fn + other.fn,
+            fp=self.fp + other.fp,
+            tn=self.tn + other.tn,
+            perfect=self.perfect + other.perfect,
+            total=self.total + other.total,
         )
 
     def precision_bug(self) -> float:
@@ -54,32 +54,72 @@ class Confusion:
         return self.tp / max(self.tp + self.fn, 1)
 
     def accuracy(self) -> float:
-        return (self.tp + self.tn) / max(self.tp + self.fp + self.fn + self.tn, 1)
+        return (self.tp + self.tn) / max(self.total_labels(), 1)
 
     def perfect_score(self) -> float:
         return self.perfect / max(self.total, 1)
 
     def f1_bug(self) -> float:
-        return 2 * self.tn / (2 * self.tn + self.fn + self.fp)
+        return 2 * self.tn / max(2 * self.tn + self.fn + self.fp, 1)
 
     def f1_no_bug(self) -> float:
-        return 2 * self.tp / (2 * self.tp + self.fp + self.fn)
+        return 2 * self.tp / max(2 * self.tp + self.fp + self.fn, 1)
+
+    def macro_precision(self):
+        return (self.precision_bug() + self.precision_no_bug()) / 2
+
+    def macro_recall(self):
+        return (self.recall_bug() + self.recall_no_bug()) / 2
+
+    def macro_f1(self):
+        return (self.f1_bug() + self.f1_no_bug()) / 2
+
+    def bugs(self):
+        return self.tn + self.fp
+
+    def no_bugs(self):
+        return self.tp + self.fn
+
+    def total_labels(self):
+        return self.bugs() + self.no_bugs()
+
+    def weighted_precision(self):
+        return (
+            self.bugs() * self.precision_bug()
+            + self.no_bugs() * self.precision_no_bug()
+        ) / max(self.total_labels(), 1)
+
+    def weighted_recall(self):
+        return (
+            self.bugs() * self.recall_bug() + self.no_bugs() * self.recall_no_bug()
+        ) / max(self.total_labels(), 1)
+
+    def weighted_f1(self):
+        return (self.bugs() * self.f1_bug() + self.no_bugs() * self.f1_no_bug()) / max(
+            self.total_labels(), 1
+        )
 
     def print(self):
-        print(f"tp: {self.tp}")
-        print(f"fp: {self.fp}")
-        print(f"fn: {self.tn}")
-        print(f"tn: {self.tn}")
-        print(f"p : {self.perfect}")
-        print(f"t : {self.total}")
-        print(f"ac: {self.accuracy()}")
-        print(f"pb: {self.precision_bug()}")
-        print(f"pn: {self.precision_no_bug()}")
-        print(f"rb: {self.recall_bug()}")
-        print(f"rn: {self.recall_no_bug()}")
-        print(f"fb: {self.f1_bug()}")
-        print(f"fn: {self.f1_no_bug()}")
-        print(f"ps: {self.perfect_score()}")
+        print(f"tp  : {self.tp}")
+        print(f"fp  : {self.fp}")
+        print(f"fn  : {self.fn}")
+        print(f"tn  : {self.tn}")
+        print(f"p   : {self.perfect}")
+        print(f"t   : {self.total}")
+        print(f"ac  : {self.accuracy()}")
+        print(f"pb  : {self.precision_bug()}")
+        print(f"pn  : {self.precision_no_bug()}")
+        print(f"rb  : {self.recall_bug()}")
+        print(f"rn  : {self.recall_no_bug()}")
+        print(f"f1b : {self.f1_bug()}")
+        print(f"f1n : {self.f1_no_bug()}")
+        print(f"mp  : {self.macro_precision()}")
+        print(f"mr  : {self.macro_recall()}")
+        print(f"mf1 : {self.macro_f1()}")
+        print(f"wap : {self.weighted_precision()}")
+        print(f"war : {self.weighted_recall()}")
+        print(f"waf1: {self.weighted_f1()}")
+        print(f"ps  : {self.perfect_score()}")
 
 
 def get_results(path: Path) -> Confusion:
