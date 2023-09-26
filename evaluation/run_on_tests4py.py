@@ -60,7 +60,10 @@ def evaluate_project(project: Project):
     for file in os.listdir(EVALUATION):
         with open(EVALUATION / file, "r") as fp:
             eval_inputs.append(fp.read())
-    eval_collector = Tests4PyEventCollector(TEST_DIR, progress=True)
+    # do not split input with shlex for cookiecutter
+    eval_collector = Tests4PyEventCollector(
+        TEST_DIR, progress=True, split=project.project_name != "cookiecutter"
+    )
     logging.info(f"Collecting events")
     eval_events = eval_collector.get_events(eval_inputs)
     eval_handler = EventHandler()
@@ -86,7 +89,10 @@ def evaluate_project(project: Project):
                 inputs.append(fp.read())
         logging.info(f"Training and evaluating initial oracle")
         obe_time = time.time()
-        collector = Tests4PyEventCollector(TEST_DIR, progress=True)
+        # do not split input with shlex for cookiecutter
+        collector = Tests4PyEventCollector(
+            TEST_DIR, progress=True, split=project.project_name != "cookiecutter"
+        )
         events = collector.get_events(inputs)
         handler = EventHandler()
         handler.handle_files(events)
@@ -120,7 +126,12 @@ def evaluate_project(project: Project):
                 handler.copy(),
                 refinement_oracle,
                 {i: args for i, args in enumerate(inputs)},
-                Tests4PyEventCollector(TEST_DIR, progress=False),
+                # do not split input with shlex for cookiecutter
+                Tests4PyEventCollector(
+                    TEST_DIR,
+                    progress=False,
+                    split=project.project_name != "cookiecutter",
+                ),
                 gens=gens,
             )
             refinement_loop.run()
@@ -157,9 +168,10 @@ def evaluate_project(project: Project):
 
 
 class Tests4PyEventCollector(EventCollector):
-    def __init__(self, work_dir: os.PathLike, progress=False):
+    def __init__(self, work_dir: os.PathLike, progress=False, split=True):
         super().__init__(work_dir)
         self.progress = progress
+        self.split = split
 
     @staticmethod
     def convert(test_result: TestResult) -> TestResult:
@@ -181,10 +193,13 @@ class Tests4PyEventCollector(EventCollector):
         for test in tqdm(tests) if self.progress else tests:
             test_input = test
             if isinstance(test, str):
-                try:
-                    test_input = shlex.split(test)
-                except ValueError:
-                    pass
+                if self.split:
+                    try:
+                        test_input = shlex.split(test)
+                    except ValueError:
+                        pass
+                else:
+                    test_input = [test]
             if label is None:
                 report = run_project(self.work_dir, test_input, invoke_oracle=True)
                 if report.raised:
