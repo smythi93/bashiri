@@ -215,10 +215,15 @@ class FeatureBuilder(CombinationFactory):
                 )
                 self.all_features.add(feature)
 
+    def copy(self):
+        new_feature_builder = FeatureBuilder()
+        new_feature_builder.all_features = set(self.all_features)
+        new_feature_builder.feature_vectors = dict(self.feature_vectors)
+        return new_feature_builder
 
-class Handler:
-    def __init__(self, context: int = 0):
-        self.context = context
+
+class EventHandler:
+    def __init__(self):
         self.feature_builder = FeatureBuilder()
         self.model = Model(self.feature_builder)
 
@@ -244,3 +249,9 @@ class Handler:
     def handle_files(self, event_files: List[EventFile]):
         for e in event_files:
             self.handle(e)
+
+    def copy(self):
+        new_handler = EventHandler()
+        new_handler.feature_builder = self.feature_builder.copy()
+        new_handler.model = Model(new_handler.feature_builder)
+        return new_handler

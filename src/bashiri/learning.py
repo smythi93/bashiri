@@ -92,17 +92,9 @@ class Oracle(ABC):
             y.to_numpy(), self.model.predict(x.to_numpy()), output_dict=output_dict
         )
 
-    def explain(self, x: pd.DataFrame, out: Optional[os.PathLike] = None):
-        x = x.to_numpy()
-        explainer = self.explainer(self.model, x)
-        shap_values = explainer.shap_values(x)
-        try:
-            plot = shap.summary_plot(shap_values, x, show=out is not None)
-        except:
-            print("shap.summary_plot() failed")
-        else:
-            if out is not None:
-                shap.save_html(out, plot)
+    def explain(self, x: Optional[pd.DataFrame] = None):
+        x = x or self.x_train
+        return self.explainer(self.model, x)(x)
 
     def finalize(
         self,

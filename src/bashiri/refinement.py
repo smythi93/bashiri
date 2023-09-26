@@ -6,14 +6,14 @@ from typing import List, Dict, Tuple, Callable
 from sflkit.runners.run import TestResult
 
 from bashiri.events import EventCollector
-from bashiri.features import Handler, FeatureVector
+from bashiri.features import EventHandler, FeatureVector
 from bashiri.learning import Oracle, Label
 
 
 class RefinementLoop(ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, str],
         iterations: int = 10,
@@ -36,13 +36,14 @@ class RefinementLoop(ABC):
         for _ in range(self.iterations):
             self.iteration()
             self.all_features = self.features.all_features
-        self.learned_oracle.finalize(self.new_feature_vectors)
+        if self.new_feature_vectors:
+            self.learned_oracle.finalize(self.new_feature_vectors)
 
 
 class TestGenRefinement(RefinementLoop, ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, str],
         collector: EventCollector,
@@ -96,7 +97,7 @@ class TestGenRefinement(RefinementLoop, ABC):
 class MutationTestGenRefinement(TestGenRefinement, ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
@@ -142,7 +143,7 @@ class MutationTestGenRefinement(TestGenRefinement, ABC):
 class StringMutationTestGenRefinement(MutationTestGenRefinement, ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
@@ -275,7 +276,7 @@ class Seed(str):
 class AFLRefinement(StringMutationTestGenRefinement, ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
@@ -332,7 +333,7 @@ class AFLRefinement(StringMutationTestGenRefinement, ABC):
 class AFLFastRefinement(AFLRefinement, ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
@@ -378,7 +379,7 @@ class AFLFastRefinement(AFLRefinement, ABC):
 class DifferenceInterestRefinement(AFLFastRefinement, ABC):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, str],
         collector: EventCollector,

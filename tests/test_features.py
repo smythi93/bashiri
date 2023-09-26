@@ -11,7 +11,7 @@ from tests4py.constants import DEFAULT_WORK_DIR
 from tests4py.projects import Project
 
 from bashiri.events import Tests4PyEventCollector, OUTPUT
-from bashiri.features import Handler
+from bashiri.features import EventHandler
 
 
 class TestFeatures(TestCase):
@@ -56,7 +56,7 @@ class TestFeatures(TestCase):
                     inputs.append(fp.read().split("\n"))
             collector = Tests4PyEventCollector(self.TEST_DIR)
             events = collector.get_events(inputs)
-            handler = Handler()
+            handler = EventHandler()
             handler.handle_files(events)
             if all_features is None:
                 all_features = list(handler.feature_builder.get_all_features())

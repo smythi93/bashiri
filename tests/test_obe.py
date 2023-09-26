@@ -9,7 +9,7 @@ from tests4py import sfl
 from tests4py.projects import Project
 
 from bashiri.events import Tests4PyEventCollector
-from bashiri.features import Handler
+from bashiri.features import EventHandler
 from bashiri.refinement import Tests4PyEvaluationFeedbackLoop
 from bashiri.learning import DecisionTreeOracle
 
@@ -44,7 +44,7 @@ class TestOBE(unittest.TestCase):
                 eval_inputs.append(fp.read())
         eval_collector = Tests4PyEventCollector(self.TEST_DIR)
         eval_events = eval_collector.get_events(eval_inputs)
-        eval_handler = Handler()
+        eval_handler = EventHandler()
         eval_handler.handle_files(eval_events)
 
         results = dict()
@@ -63,7 +63,7 @@ class TestOBE(unittest.TestCase):
             obe_time = time.time()
             collector = Tests4PyEventCollector(self.TEST_DIR)
             events = collector.get_events(inputs)
-            handler = Handler()
+            handler = EventHandler()
             handler.handle_files(events)
             all_features = handler.feature_builder.get_all_features()
             path = Path("dt")

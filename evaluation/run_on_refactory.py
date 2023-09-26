@@ -16,7 +16,7 @@ from sflkit.runners.run import TestResult
 from tqdm import tqdm
 
 from bashiri.events import EventCollector, instrument
-from bashiri.features import Handler, FeatureBuilder
+from bashiri.features import EventHandler, FeatureBuilder
 from bashiri.learning import DecisionTreeOracle
 
 REFACTORY = Path("refactory")
@@ -63,7 +63,7 @@ def get_features_from_tests(question: int, tests: Sequence[str]) -> FeatureBuild
         Path.cwd(), expected_results=EXPECTED_OUTPUTS.get(question, dict())
     )
     events = collector.get_events(tests)
-    handler = Handler()
+    handler = EventHandler()
     handler.handle_files(events)
     return handler.feature_builder
 

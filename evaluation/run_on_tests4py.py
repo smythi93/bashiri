@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+import random
 import shutil
 import time
 from pathlib import Path
@@ -20,13 +21,13 @@ from tests4py.api import run_project
 from tests4py.projects import Project
 
 from bashiri.events import EventCollector
-from bashiri.features import Handler, FeatureVector
+from bashiri.features import EventHandler, FeatureVector
 from bashiri.refinement import (
     DifferenceInterestRefinement,
 )
 from bashiri.learning import DecisionTreeOracle, Oracle, Label
 
-TMP = Path("../tmp_tests")
+TMP = Path("tmp_tests")
 TEST_DIR = TMP / "test_dir"
 EVENTS_DIR = TMP / "events"
 EVENTS_TRAINING = EVENTS_DIR / "train"
@@ -34,31 +35,45 @@ EVENTS_EVALUATION = EVENTS_DIR / "eval"
 TRAINING = TMP / "train"
 EVALUATION = TMP / "eval"
 
+N = 2
+F = 1
+RLS = [10, 100]
+SEED = 42
+
 
 def evaluate_project(project: Project):
     project.buggy = True
+    logging.info(f"Checking out subject {project}")
     report = t4p.checkout_project(project)
     if report.raised:
         raise report.raised
     location = Path(report.location)
+    logging.info(f"Instrumenting and compiling subject {project}")
     report = sfl.sflkit_instrument(location, TEST_DIR)
     if report.raised:
         raise report.raised
-    report = t4p.system_generate_project(TEST_DIR, EVALUATION, n=200, p=100)
+    logging.info(f"Generating {N} tests ({F} failing) for evaluation")
+    report = t4p.system_generate_project(TEST_DIR, EVALUATION, n=N, p=F)
     eval_inputs = []
     if report.raised:
         raise report.raised
     for file in os.listdir(EVALUATION):
         with open(EVALUATION / file, "r") as fp:
             eval_inputs.append(fp.read())
-    eval_collector = Tests4PyEventCollector(TEST_DIR)
+    eval_collector = Tests4PyEventCollector(TEST_DIR, progress=True)
+    logging.info(f"Collecting events")
     eval_events = eval_collector.get_events(eval_inputs)
-    eval_handler = Handler()
-    eval_handler.handle_files(eval_events)
+    eval_handler = EventHandler()
+    logging.info(f"Constructing features")
+    for e in tqdm(eval_events):
+        eval_handler.handle(e)
+    assert len(eval_handler.feature_builder.feature_vectors) == len(eval_events)
 
     results = dict()
 
-    for t, f in tqdm(((5, 1), (10, 1), (10, 2), (30, 3))):
+    logging.info(f"Running configurations")
+    for t, f in ((5, 1), (10, 1), (10, 2), (30, 3)):
+        logging.info(f"Starting evaluation of {t} tests and {f} failing")
         result = dict()
 
         report = t4p.system_generate_project(TEST_DIR, TRAINING, n=t, p=f)
@@ -69,10 +84,11 @@ def evaluate_project(project: Project):
         for file in os.listdir(TRAINING):
             with open(TRAINING / file, "r") as fp:
                 inputs.append(fp.read())
+        logging.info(f"Training and evaluating initial oracle")
         obe_time = time.time()
-        collector = Tests4PyEventCollector(TEST_DIR)
+        collector = Tests4PyEventCollector(TEST_DIR, progress=True)
         events = collector.get_events(inputs)
-        handler = Handler()
+        handler = EventHandler()
         handler.handle_files(events)
         all_features = handler.feature_builder.get_all_features()
         path = Path("../dt")
@@ -91,78 +107,48 @@ def evaluate_project(project: Project):
         result["eval"] = report_eval
         result["time"] = obe_time
         result["confusion"] = confusion
+        result["refinement"] = dict()
 
-        oracle_10 = DecisionTreeOracle(path=path)
-        oracle_100 = DecisionTreeOracle(path=path)
-        oracle_10.fit(
-            all_features,
-            handler.feature_builder.get_vectors(),
-        )
-        oracle_100.fit(
-            all_features,
-            handler.feature_builder.get_vectors(),
-        )
-
-        refinement_time_10 = time.time()
-        refinement_loop = Tests4PyEvaluationRefinement(
-            handler,
-            oracle_10,
-            {i: args for i, args in enumerate(inputs)},
-            collector,
-        )
-        refinement_loop.run()
-        refinement_time_10 = time.time() - refinement_time_10
-        report_10, confusion_10 = oracle_10.evaluate(
-            eval_handler.feature_builder.get_vectors(), output_dict=True
-        )
-        result["eval_fb_10"] = report_10
-        result["time_fb_10"] = refinement_time_10
-        result["confusion_fb_10"] = refinement_time_10
-        result["new_fb_10"] = len(refinement_loop.new_feature_vectors)
-        result["failing_fb_10"] = len(
-            list(
-                filter(
-                    lambda vector: vector.result == TestResult.FAILING,
-                    refinement_loop.new_feature_vectors,
+        for gens in RLS:
+            logging.info(
+                f"Refining and evaluating initial oracle with {gens} generations"
+            )
+            refinement_oracle = DecisionTreeOracle()
+            refinement_oracle.fit(all_features, handler.feature_builder.get_vectors())
+            refinement_time = time.time()
+            refinement_loop = Tests4PyEvaluationRefinement(
+                handler.copy(),
+                refinement_oracle,
+                {i: args for i, args in enumerate(inputs)},
+                Tests4PyEventCollector(TEST_DIR, progress=False),
+                gens=gens,
+            )
+            refinement_loop.run()
+            refinement_time = time.time() - refinement_time
+            refinement_report, refinement_confusion = refinement_oracle.evaluate(
+                eval_handler.feature_builder.get_vectors(), output_dict=True
+            )
+            refinement_results = dict()
+            refinement_results["eval"] = refinement_report
+            refinement_results["time"] = refinement_time
+            refinement_results["confusion"] = refinement_confusion
+            refinement_results["new"] = len(refinement_loop.new_feature_vectors)
+            logging.info(f"Found {len(refinement_loop.new_feature_vectors)} new inputs")
+            refinement_results["failing"] = len(
+                list(
+                    filter(
+                        lambda vector: vector.result == TestResult.FAILING,
+                        refinement_loop.new_feature_vectors,
+                    )
                 )
             )
-        )
-        report_10_new, confusion_10_new = oracle.evaluate(
-            refinement_loop.new_feature_vectors, output_dict=True
-        )
-        result["eval_fb_10_new"] = report_10_new
-        result["confusion_fb_10_new"] = confusion_10_new
-
-        refinement_time_100 = time.time()
-        refinement_loop = Tests4PyEvaluationRefinement(
-            handler,
-            oracle_100,
-            {i: arguments for i, arguments in enumerate(inputs)},
-            collector,
-            gens=100,
-        )
-        refinement_loop.run()
-        refinement_time_100 = time.time() - refinement_time_100
-        report_100, confusion_100 = oracle.evaluate(
-            eval_handler.feature_builder.get_vectors(), output_dict=True
-        )
-        result["eval_fb_100"] = report_100
-        result["time_fb_100"] = refinement_time_100
-        result["confusion_fb_100"] = confusion_100
-        result["new_fb_100"] = len(refinement_loop.new_feature_vectors)
-        result["failing_fb_100"] = len(
-            list(
-                filter(
-                    lambda vector: vector.result == TestResult.FAILING,
-                    refinement_loop.new_feature_vectors,
+            if refinement_loop.new_feature_vectors:
+                report_new, confusion_new = oracle.evaluate(
+                    refinement_loop.new_feature_vectors, output_dict=True
                 )
-            )
-        )
-        report_100_new, confusion_100_new = oracle.evaluate(
-            refinement_loop.new_feature_vectors, output_dict=True
-        )
-        result["eval_fb_100_new"] = report_100_new
-        result["confusion_fb_100_new"] = confusion_100_new
+                refinement_results["eval_new"] = report_new
+                refinement_results["confusion_new"] = confusion_new
+            result["refinement"][gens] = refinement_results
 
         results[f"tests_{t}_failing_{f}"] = result
 
@@ -171,14 +157,16 @@ def evaluate_project(project: Project):
 
 
 class Tests4PyEventCollector(EventCollector):
+    def __init__(self, work_dir: os.PathLike, progress=False):
+        super().__init__(work_dir)
+        self.progress = progress
+
     @staticmethod
     def convert(test_result: TestResult) -> TestResult:
-        if test_result.name == "PASSING":
-            return TestResult.PASSING
-        elif test_result.name == "FAILING":
+        if test_result.name == "FAILING":
             return TestResult.FAILING
         else:
-            return TestResult.UNDEFINED
+            return TestResult.PASSING
 
     def collect(
         self,
@@ -190,7 +178,7 @@ class Tests4PyEventCollector(EventCollector):
         output.mkdir(parents=True, exist_ok=True)
         for test_result in TestResult:
             (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
-        for test in tests:
+        for test in tqdm(tests) if self.progress else tests:
             test_input = test
             if isinstance(test, str):
                 try:
@@ -221,7 +209,7 @@ class Tests4PyEventCollector(EventCollector):
 class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):
     def __init__(
         self,
-        handler: Handler,
+        handler: EventHandler,
         oracle: Oracle,
         seeds: Dict[int, str],
         collector: EventCollector,
@@ -262,6 +250,13 @@ class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):
             logging.warning(f"cannot find {args} in run")
         return Label.NO_BUG
 
+    def run(self):
+        for _ in tqdm(range(self.iterations)):
+            self.iteration()
+            self.all_features = self.features.all_features
+        if self.new_feature_vectors:
+            self.learned_oracle.finalize(self.new_feature_vectors)
+
 
 def main(project_name: str, bug_id: int):
     project = t4p.get_projects(project_name, bug_id)[0]
@@ -270,6 +265,7 @@ def main(project_name: str, bug_id: int):
 
 
 if __name__ == "__main__":
+    random.seed(SEED)
     tests4py.logger.LOGGER.disabled = True
     sflkit.logger.LOGGER.disabled = True
     arg_parser = argparse.ArgumentParser()
