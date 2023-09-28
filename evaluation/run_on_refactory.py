@@ -59,6 +59,8 @@ HANDLER = logging.handlers.WatchedFileHandler("refactory.log")
 LOGGER.addHandler(HANDLER)
 LOGGER.propagate = False
 
+ONLY_FUNCTIONS = False
+
 
 def get_features_from_tests(question: int, tests: Sequence[str]) -> FeatureBuilder:
     collector = RefactoryEventCollector(
@@ -117,14 +119,17 @@ def verify_example(
 
 
 def run_on_example(
-    question: int, identifier: int, limit: Optional[int] = None
+    question: int, identifier: int, limit: Optional[int] = None, functions: bool = False
 ) -> Optional[Dict[str, Any]]:
     name = f"wrong_{question}_{identifier:03d}"
     path, eval_path = QUESTIONS[question]
     file: Path = path / CODE / "wrong" / f"{name}.py"
     if file.exists() and verify_example(question, file, path / ANS, limit=limit):
         LOGGER.info(f"Start evaluation of {name}")
-        instrument(file, DST)
+        if functions:
+            instrument(file, DST, events=["FUNCTION_ENTER"])
+        else:
+            instrument(file, DST)
         LOGGER.info(f"Get evaluation features of {name}")
         eval_features = get_features(question, eval_path, limit=limit)
         LOGGER.info(f"Get oracle for {name}")
@@ -146,7 +151,9 @@ def run_on_example(
         LOGGER.info(f"Skip evaluation of {name}")
 
 
-def run_on_question(question: int, limit: Optional[int] = None):
+def run_on_question(
+    question: int, limit: Optional[int] = None, functions: bool = False
+):
     path, _ = QUESTIONS[question]
     directory: Path = path / CODE / "wrong"
     result = dict()
@@ -157,7 +164,9 @@ def run_on_question(question: int, limit: Optional[int] = None):
                 q = int(m.group("q"))
                 if q == question:
                     e = int(m.group("e"))
-                    result[e] = run_on_example(question, e, limit=limit)
+                    result[e] = run_on_example(
+                        question, e, limit=limit, functions=functions
+                    )
     return result
 
 
@@ -202,14 +211,19 @@ def main(*args: str, stdout=sys.stdout, stderr=sys.stderr):
     result_file = "refactory"
     if args.question is None:
         for question in range(1, 6):
-            run_on_question(question, limit=args.limit)
+            run_on_question(question, limit=args.limit, functions=ONLY_FUNCTIONS)
     elif args.example is None:
         result_file += f"_{args.question}"
-        run_on_question(args.question, limit=args.limit)
+        run_on_question(args.question, limit=args.limit, functions=ONLY_FUNCTIONS)
     else:
         result_file += f"_{args.question}_{args.example}"
-        run_on_example(args.question, args.example, limit=args.limit)
-    with open(RESULTS_PATH / f"{result_file}.json", "w") as result_json:
+        run_on_example(
+            args.question, args.example, limit=args.limit, functions=ONLY_FUNCTIONS
+        )
+    with open(
+        RESULTS_PATH / f"{result_file}{'_functions' if ONLY_FUNCTIONS else ''}.json",
+        "w",
+    ) as result_json:
         json.dump(RESULTS, result_json)
 
 

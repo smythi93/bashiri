@@ -39,14 +39,16 @@ DEFAULT_EXCLUDES = [
 ]
 
 
-def instrument(src: PathLike, dst: PathLike, excludes: List[str] = None):
+def instrument(
+    src: PathLike, dst: PathLike, excludes: List[str] = None, events: List[str] = None
+):
     if excludes is None:
         excludes = DEFAULT_EXCLUDES
     instrument_config(
         Config.create(
             path=str(src),
             language="Python",
-            events=",".join(EVENTS),
+            events=",".join(events or EVENTS),
             working=str(dst),
             exclude=",".join(excludes),
         ),
