@@ -26,7 +26,7 @@ classifiers = [
     "Topic :: Software Development :: Testing"
 ]
 dependencies = [
-    "sflkit>=0.2.12",
+    "sflkit>=0.2.13",
     "sflkitlib>=0.0.1",
     "tests4py>=0.0.5",
     "pytest>=7.4.2",
