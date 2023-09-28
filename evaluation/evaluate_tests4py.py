@@ -40,29 +40,28 @@ def get_results(
             precisions.append(tmp_results.precision_bug())
             recalls.append(tmp_results.recall_bug())
             results += tmp_results
-            if REFINEMENT in refactory_results[config]:
-                for refinement in refactory_results[config][REFINEMENT]:
-                    results_refinement += get_confusion(
-                        refactory_results[config][REFINEMENT][refinement],
-                        f"{path}_{config}_{REFINEMENT}_{refinement}",
+            for refinement in refactory_results[config][REFINEMENT]:
+                results_refinement += get_confusion(
+                    refactory_results[config][REFINEMENT][refinement],
+                    f"{path}_{config}_{REFINEMENT}_{refinement}",
+                )
+                if (
+                    NEW_EVAL in refactory_results[config][REFINEMENT][refinement]
+                    and NEW_CONFUSION
+                    in refactory_results[config][REFINEMENT][refinement]
+                ):
+                    results_new_tests += get_confusion(
+                        {
+                            EVAL: refactory_results[config][REFINEMENT][refinement][
+                                NEW_EVAL
+                            ],
+                            CONFUSION: refactory_results[config][REFINEMENT][
+                                refinement
+                            ][NEW_CONFUSION],
+                            TIME: 0,
+                        },
+                        f"{path}_{config}_new_{refinement}",
                     )
-                    if (
-                        NEW_EVAL in refactory_results[config][REFINEMENT][refinement]
-                        and NEW_CONFUSION
-                        in refactory_results[config][REFINEMENT][refinement]
-                    ):
-                        results_new_tests += get_confusion(
-                            {
-                                EVAL: refactory_results[config][REFINEMENT][refinement][
-                                    NEW_EVAL
-                                ],
-                                CONFUSION: refactory_results[config][REFINEMENT][
-                                    refinement
-                                ][NEW_CONFUSION],
-                                TIME: 0,
-                            },
-                            f"{path}_{config}_new_{refinement}",
-                        )
     return (
         results,
         results_refinement,
@@ -104,8 +103,6 @@ def main(function=False):
 
     print("Results:")
     results.print()
-    if function:
-        return
     print()
     print("Results refinement:")
     results_refinement.print()
