@@ -61,6 +61,8 @@ LOGGER.propagate = False
 
 ONLY_FUNCTIONS = False
 
+LIMIT = None
+
 
 def get_features_from_tests(question: int, tests: Sequence[str]) -> FeatureBuilder:
     collector = RefactoryEventCollector(
@@ -211,14 +213,21 @@ def main(*args: str, stdout=sys.stdout, stderr=sys.stderr):
     result_file = "refactory"
     if args.question is None:
         for question in range(1, 6):
-            run_on_question(question, limit=args.limit, functions=ONLY_FUNCTIONS)
+            run_on_question(
+                question, limit=args.limit or LIMIT, functions=ONLY_FUNCTIONS
+            )
     elif args.example is None:
         result_file += f"_{args.question}"
-        run_on_question(args.question, limit=args.limit, functions=ONLY_FUNCTIONS)
+        run_on_question(
+            args.question, limit=args.limit or LIMIT, functions=ONLY_FUNCTIONS
+        )
     else:
         result_file += f"_{args.question}_{args.example}"
         run_on_example(
-            args.question, args.example, limit=args.limit, functions=ONLY_FUNCTIONS
+            args.question,
+            args.example,
+            limit=args.limit or LIMIT,
+            functions=ONLY_FUNCTIONS,
         )
     with open(
         RESULTS_PATH / f"{result_file}{'_functions' if ONLY_FUNCTIONS else ''}.json",
