@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 from typing import Tuple, List
 
@@ -71,7 +72,7 @@ def get_results(
     )
 
 
-def main():
+def main(function=False):
     results = Confusion(total=0)
     results_refinement = Confusion(total=0)
     results_new_tests = Confusion(total=0)
@@ -88,6 +89,9 @@ def main():
         COOKIECUTTER_2,
         FASTAPI_2,
     ]:
+        if function:
+            parts = path.parts
+            path = Path(*parts[:-1], parts[-1].replace(".json", "_functions.json"))
         r, rr, rnt, as_, ps_, rs_ = get_results(path)
         results += r
         results_refinement += rr
@@ -158,4 +162,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(len(sys.argv) > 1 and sys.argv[1] == "-f")
