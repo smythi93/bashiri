@@ -10,5 +10,4 @@ if __name__ == "__main__":
     else:
         run_on_refactory.ONLY_FUNCTIONS = True
         run_on_refactory.TIMEOUT = 0.5
-        run_on_refactory.LIMIT = 50
         run_on_refactory.main()
