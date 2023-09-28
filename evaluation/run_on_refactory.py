@@ -46,6 +46,8 @@ ANS = Path("ans")
 ACCESS = "access.py"
 DST = "tmp.py"
 
+RESULTS_PATH = Path("results")
+
 EXPECTED_OUTPUTS: Dict[int, Dict[str, Any]] = dict()
 RESULTS: Dict[str, Dict[str, Any]] = dict()
 
@@ -195,6 +197,8 @@ def main(*args: str, stdout=sys.stdout, stderr=sys.stderr):
         sys.stderr = stderr
     sflkit.logger.LOGGER.disabled = True
     args = parse_args(*args)
+    if not RESULTS_PATH.exists():
+        RESULTS_PATH.mkdir(parents=True, exist_ok=True)
     result_file = "refactory"
     if args.question is None:
         for question in range(1, 6):
@@ -205,7 +209,7 @@ def main(*args: str, stdout=sys.stdout, stderr=sys.stderr):
     else:
         result_file += f"_{args.question}_{args.example}"
         run_on_example(args.question, args.example, limit=args.limit)
-    with open(f"{result_file}.json", "w") as result_json:
+    with open(RESULTS_PATH / f"{result_file}.json", "w") as result_json:
         json.dump(RESULTS, result_json)
 
 

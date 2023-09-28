@@ -40,6 +40,8 @@ F = 100
 RLS = [10, 100]
 SEED = 42
 
+RESULTS_PATH = Path("results")
+
 
 def evaluate_project(project: Project):
     project.buggy = True
@@ -163,7 +165,7 @@ def evaluate_project(project: Project):
 
         results[f"tests_{t}_failing_{f}"] = result
 
-    with open(f"{project.get_identifier()}.json", "w") as fp:
+    with open(RESULTS_PATH / f"{project.get_identifier()}.json", "w") as fp:
         json.dump(results, fp, indent=2)
 
 
@@ -276,6 +278,8 @@ class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):
 def main(project_name: str, bug_id: int):
     project = t4p.get_projects(project_name, bug_id)[0]
     assert project.systemtests
+    if not RESULTS_PATH.exists():
+        RESULTS_PATH.mkdir(parents=True, exist_ok=True)
     evaluate_project(project)
 
 
