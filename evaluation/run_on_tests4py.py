@@ -115,53 +115,6 @@ def evaluate_project(project: Project):
         result["eval"] = report_eval
         result["time"] = obe_time
         result["confusion"] = confusion
-        result["refinement"] = dict()
-
-        for gens in RLS:
-            logging.info(
-                f"Refining and evaluating initial oracle with {gens} generations"
-            )
-            refinement_oracle = DecisionTreeOracle()
-            refinement_oracle.fit(all_features, handler.feature_builder.get_vectors())
-            refinement_time = time.time()
-            refinement_loop = Tests4PyEvaluationRefinement(
-                handler.copy(),
-                refinement_oracle,
-                {i: args for i, args in enumerate(inputs)},
-                # do not split input with shlex for cookiecutter
-                Tests4PyEventCollector(
-                    TEST_DIR,
-                    progress=False,
-                    split=project.project_name != "cookiecutter",
-                ),
-                gens=gens,
-            )
-            refinement_loop.run()
-            refinement_time = time.time() - refinement_time
-            refinement_report, refinement_confusion = refinement_oracle.evaluate(
-                eval_handler.feature_builder.get_vectors(), output_dict=True
-            )
-            refinement_results = dict()
-            refinement_results["eval"] = refinement_report
-            refinement_results["time"] = refinement_time
-            refinement_results["confusion"] = refinement_confusion
-            refinement_results["new"] = len(refinement_loop.new_feature_vectors)
-            logging.info(f"Found {len(refinement_loop.new_feature_vectors)} new inputs")
-            refinement_results["failing"] = len(
-                list(
-                    filter(
-                        lambda vector: vector.result == TestResult.FAILING,
-                        refinement_loop.new_feature_vectors,
-                    )
-                )
-            )
-            if refinement_loop.new_feature_vectors:
-                report_new, confusion_new = oracle.evaluate(
-                    refinement_loop.new_feature_vectors, output_dict=True
-                )
-                refinement_results["eval_new"] = report_new
-                refinement_results["confusion_new"] = confusion_new
-            result["refinement"][gens] = refinement_results
 
         results[f"tests_{t}_failing_{f}"] = result
 
