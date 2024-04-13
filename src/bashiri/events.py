@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import List, Dict, Optional, Sequence, Any
 
 from sflkit import instrument_config, Config
+from sflkit.config import hash_identifier
+from sflkit.mapping import EventMapping
 from sflkit.model import EventFile
 from sflkit.runners import PytestRunner, InputRunner
 from sflkit.runners.run import TestResult
@@ -56,8 +58,9 @@ def instrument(
 
 
 class EventCollector(ABC):
-    def __init__(self, work_dir: PathLike):
+    def __init__(self, work_dir: PathLike, src: PathLike):
         self.work_dir = Path(work_dir)
+        self.src = Path(src)
         self.runs: Dict[str, TestResult] = dict()
 
     @abstractmethod
@@ -70,14 +73,20 @@ class EventCollector(ABC):
         pass
 
     @staticmethod
-    def get_event_files(events: PathLike) -> List[EventFile]:
+    def get_event_files(events: PathLike, work_dir: PathLike) -> List[EventFile]:
         events = Path(events)
+        mapping = EventMapping.load_from_file(hash_identifier(work_dir))
         failing = [
-            EventFile(events / "failing" / path, run_id, failing=True)
+            EventFile(
+                events / "failing" / path,
+                run_id,
+                mapping,
+                failing=True,
+            )
             for run_id, path in enumerate(os.listdir(events / "failing"), start=0)
         ]
         passing = [
-            EventFile(events / "passing" / path, run_id)
+            EventFile(events / "passing" / path, run_id, mapping, failing=False)
             for run_id, path in enumerate(
                 os.listdir(events / "passing"),
                 start=len(failing),
@@ -92,13 +101,18 @@ class EventCollector(ABC):
     ) -> List[EventFile]:
         shutil.rmtree(OUTPUT, ignore_errors=True)
         self.collect(OUTPUT, tests=tests, label=label)
-        failing, passing = self.get_event_files(OUTPUT)
+        failing, passing = self.get_event_files(OUTPUT, self.src)
         return failing + passing
 
 
 class UnittestEventCollector(EventCollector):
-    def __init__(self, work_dir: PathLike, environ: Optional[Dict[str, str]] = None):
-        super().__init__(work_dir)
+    def __init__(
+        self,
+        work_dir: PathLike,
+        src: PathLike,
+        environ: Optional[Dict[str, str]] = None,
+    ):
+        super().__init__(work_dir, src)
         self.environ = environ
 
     def collect(
@@ -116,10 +130,11 @@ class SystemtestEventCollector(EventCollector):
     def __init__(
         self,
         work_dir: PathLike,
+        src: PathLike,
         access: PathLike,
         environ: Optional[Dict[str, str]] = None,
     ):
-        super().__init__(work_dir)
+        super().__init__(work_dir, src)
         self.access = access
         self.environ = environ
 

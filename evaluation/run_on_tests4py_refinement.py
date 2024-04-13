@@ -17,7 +17,7 @@ from tqdm import tqdm
 import tests4py.api as t4p
 from sflkit.runners.run import TestResult
 from tests4py import sfl
-from tests4py.api import run_project
+from tests4py.api import run
 from tests4py.projects import Project
 
 from bashiri.events import EventCollector
@@ -46,16 +46,16 @@ RESULTS_PATH = Path("results")
 def evaluate_project(project: Project):
     project.buggy = True
     logging.info(f"Checking out subject {project}")
-    report = t4p.checkout_project(project)
+    report = t4p.checkout(project)
     if report.raised:
         raise report.raised
     location = Path(report.location)
     logging.info(f"Instrumenting and compiling subject {project}")
-    report = sfl.sflkit_instrument(location, TEST_DIR)
+    report = sfl.sflkit_instrument(TEST_DIR, location)
     if report.raised:
         raise report.raised
     logging.info(f"Generating {N} tests ({F} failing) for evaluation")
-    report = t4p.system_generate_project(TEST_DIR, EVALUATION, n=N, p=F)
+    report = t4p.systemtest_generate(TEST_DIR, EVALUATION, n=N, p=F)
     eval_inputs = []
     if report.raised:
         raise report.raised
@@ -64,7 +64,7 @@ def evaluate_project(project: Project):
             eval_inputs.append(fp.read())
     # do not split input with shlex for cookiecutter
     eval_collector = Tests4PyEventCollector(
-        TEST_DIR, progress=True, split=project.project_name != "cookiecutter"
+        TEST_DIR, location, progress=True, split=project.project_name != "cookiecutter"
     )
     logging.info(f"Collecting events")
     eval_events = eval_collector.get_events(eval_inputs)
@@ -81,7 +81,7 @@ def evaluate_project(project: Project):
         logging.info(f"Starting evaluation of {i}")
         result = dict()
 
-        report = t4p.system_generate_project(TEST_DIR, TRAINING, n=2, p=1)
+        report = t4p.systemtest_generate(TEST_DIR, TRAINING, n=2, p=1)
         if report.raised:
             raise report.raised
 
@@ -93,7 +93,10 @@ def evaluate_project(project: Project):
         obe_time = time.time()
         # do not split input with shlex for cookiecutter
         collector = Tests4PyEventCollector(
-            TEST_DIR, progress=True, split=project.project_name != "cookiecutter"
+            TEST_DIR,
+            location,
+            progress=True,
+            split=project.project_name != "cookiecutter",
         )
         events = collector.get_events(inputs)
         handler = EventHandler()
@@ -131,6 +134,7 @@ def evaluate_project(project: Project):
                 # do not split input with shlex for cookiecutter
                 Tests4PyEventCollector(
                     TEST_DIR,
+                    location,
                     progress=False,
                     split=project.project_name != "cookiecutter",
                 ),
@@ -170,8 +174,10 @@ def evaluate_project(project: Project):
 
 
 class Tests4PyEventCollector(EventCollector):
-    def __init__(self, work_dir: os.PathLike, progress=False, split=True):
-        super().__init__(work_dir)
+    def __init__(
+        self, work_dir: os.PathLike, src: os.PathLike, progress=False, split=True
+    ):
+        super().__init__(work_dir, src)
         self.progress = progress
         self.split = split
 
@@ -203,13 +209,13 @@ class Tests4PyEventCollector(EventCollector):
                 else:
                     test_input = [test]
             if label is None:
-                report = run_project(self.work_dir, test_input, invoke_oracle=True)
+                report = run(self.work_dir, test_input, invoke_oracle=True)
                 if report.raised:
                     test_result = TestResult.UNDEFINED
                 else:
                     test_result = self.convert(report.test_result)
             else:
-                report = run_project(self.work_dir, test_input)
+                report = run(self.work_dir, test_input)
                 if report.raised:
                     raise report.raised
                 test_result = label

@@ -64,9 +64,11 @@ ONLY_FUNCTIONS = False
 LIMIT = None
 
 
-def get_features_from_tests(question: int, tests: Sequence[str]) -> FeatureBuilder:
+def get_features_from_tests(
+    question: int, tests: Sequence[str], src: os.PathLike
+) -> FeatureBuilder:
     collector = RefactoryEventCollector(
-        Path.cwd(), expected_results=EXPECTED_OUTPUTS.get(question, dict())
+        Path.cwd(), src, expected_results=EXPECTED_OUTPUTS.get(question, dict())
     )
     events = collector.get_events(tests)
     handler = EventHandler()
@@ -93,12 +95,14 @@ def get_tests(question: int, path: Path, limit: Optional[int] = None) -> List[st
     return tests
 
 
-def get_features(question: int, path: Path, limit: Optional[int] = None):
-    return get_features_from_tests(question, get_tests(question, path, limit))
+def get_features(
+    question: int, path: Path, src: os.PathLike, limit: Optional[int] = None
+):
+    return get_features_from_tests(question, get_tests(question, path, limit), src)
 
 
-def get_model(question: int, ans_path):
-    features = get_features(question, ans_path)
+def get_model(question: int, ans_path, src: os.PathLike):
+    features = get_features(question, ans_path, src)
     all_features = features.get_all_features()
     path = Path("dt")
     if path.exists():
@@ -133,10 +137,10 @@ def run_on_example(
         else:
             instrument(file, DST)
         LOGGER.info(f"Get evaluation features of {name}")
-        eval_features = get_features(question, eval_path, limit=limit)
+        eval_features = get_features(question, eval_path, file, limit=limit)
         LOGGER.info(f"Get oracle for {name}")
         start = time.time()
-        model = get_model(question, path / ANS)
+        model = get_model(question, path / ANS, file)
         timing = time.time() - start
         report_eval, confusion_matrix = model.evaluate(
             eval_features.get_vectors(),
@@ -269,8 +273,10 @@ def oracle(test: str, expected_results: Dict[str, Any] = None):
 
 
 class RefactoryEventCollector(EventCollector):
-    def __init__(self, work_dir: os.PathLike, expected_results: Dict[str, Any]):
-        super().__init__(work_dir)
+    def __init__(
+        self, work_dir: os.PathLike, src: os.PathLike, expected_results: Dict[str, Any]
+    ):
+        super().__init__(work_dir, src)
         self.expected_results = expected_results
 
     def collect(

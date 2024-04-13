@@ -32,7 +32,7 @@ dependencies = [
     "scikit-learn>=1.4.2",
     "shap>=0.45.0",
     "joblib>=1.4.0",
-    "tests4py>=0.0.6",
+    "tests4py @ git+https://github.com/smythi93/Tests4Py@dfb76f897c8fb44321d0156f272a1bc157909ff4",
     "pytest>=7.4.2",
 ]
 
