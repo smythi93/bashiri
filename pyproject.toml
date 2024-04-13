@@ -26,7 +26,7 @@ classifiers = [
     "Topic :: Software Development :: Testing"
 ]
 dependencies = [
-    "sflkit @ git+https://github.com/uds-se/sflkit.git@bd85c8e0d1cd9afb330702d4a92fc40152073474",
+    "sflkit @ git+https://github.com/uds-se/sflkit.git@902f45f7eb4f0a32a4a1880e46ccae6723aa61e5",
     "sflkitlib>=0.0.3",
     "pandas>=2.2.2",
     "scikit-learn>=1.4.2",
