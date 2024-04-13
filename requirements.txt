@@ -1,6 +1,8 @@
-sflkit>=0.2.13
-sflkitlib>=0.0.1
-pandas>=2.1.0
-scikit-learn>=1.3.0
-shap>=0.42.1
-joblib>=1.3.2
+sflkit @ git+https://github.com/uds-se/sflkit.git@bd85c8e0d1cd9afb330702d4a92fc40152073474
+sflkitlib>=0.0.3
+pandas>=2.2.2
+scikit-learn>=1.4.2
+shap>=0.45.0
+joblib>=1.4.0
+tests4py>=0.0.6
+pytest>=8.1.1
