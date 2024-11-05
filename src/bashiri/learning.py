@@ -1,5 +1,6 @@
 import enum
 import os
+import warnings
 from abc import ABC
 from typing import Sequence, Tuple, Any, Optional, List
 
@@ -9,11 +10,14 @@ from joblib import dump, load
 from sflkit.features.handler import EventHandler
 from sflkit.features.value import Feature
 from sklearn import svm, tree
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.neural_network import MLPClassifier
 
 from bashiri.reduce import FeatureSelection, DefaultSelection
+
+warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 
 class Label(enum.Enum):
