@@ -26,15 +26,17 @@ classifiers = [
     "Topic :: Software Development :: Testing"
 ]
 dependencies = [
-    "sflkit @ git+https://github.com/uds-se/sflkit.git@902f45f7eb4f0a32a4a1880e46ccae6723aa61e5",
-    "sflkitlib>=0.0.3",
-    "pandas>=2.2.2",
-    "scikit-learn>=1.4.2",
-    "shap>=0.45.0",
-    "joblib>=1.4.0",
-    "tests4py @ git+https://github.com/smythi93/Tests4Py@dfb76f897c8fb44321d0156f272a1bc157909ff4",
-    "pytest>=7.4.2",
+    "pandas >= 2.2.2",
+    "scikit-learn >= 1.5.2",
+    "shap >= 0.46.0",
+    "joblib >= 1.4.2",
+    "tests4py >= 0.0.13",
+    "pytest >= 8.3.3",
+    "sflkit >= 0.2.22"
 ]
+
+[sources]
+include = ["src"]
 
 [project.optional-dependencies]
 test = [

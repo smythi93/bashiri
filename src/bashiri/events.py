@@ -3,12 +3,12 @@ import shutil
 from abc import abstractmethod, ABC
 from os import PathLike
 from pathlib import Path
-from typing import List, Dict, Optional, Sequence, Any
+from typing import List, Dict, Optional, Sequence, Any, Tuple
 
 from sflkit import instrument_config, Config
 from sflkit.config import hash_identifier
-from sflkit.mapping import EventMapping
-from sflkit.model import EventFile
+from sflkit.events.event_file import EventFile
+from sflkit.events.mapping import EventMapping
 from sflkit.runners import PytestRunner, InputRunner
 from sflkit.runners.run import TestResult
 from sflkitlib.events import EventType
@@ -42,7 +42,11 @@ DEFAULT_EXCLUDES = [
 
 
 def instrument(
-    src: PathLike, dst: PathLike, excludes: List[str] = None, events: List[str] = None
+    src: PathLike,
+    dst: PathLike,
+    mapping_path: PathLike,
+    excludes: List[str] = None,
+    events: List[str] = None,
 ):
     if excludes is None:
         excludes = DEFAULT_EXCLUDES
@@ -53,15 +57,24 @@ def instrument(
             events=",".join(events or EVENTS),
             working=str(dst),
             exclude=",".join(excludes),
+            mapping_path=str(mapping_path),
         ),
     )
 
 
 class EventCollector(ABC):
-    def __init__(self, work_dir: PathLike, src: PathLike):
+    def __init__(
+        self, work_dir: PathLike, src: PathLike, mapping_path: Optional[PathLike] = None
+    ):
         self.work_dir = Path(work_dir)
         self.src = Path(src)
         self.runs: Dict[str, TestResult] = dict()
+        self.mapping = EventMapping.load_from_file(
+            Path(mapping_path or EventMapping.get_path(self.identifier())),
+        )
+
+    def identifier(self):
+        return hash_identifier(self.work_dir)
 
     @abstractmethod
     def collect(
@@ -72,21 +85,21 @@ class EventCollector(ABC):
     ):
         pass
 
-    @staticmethod
-    def get_event_files(events: PathLike, work_dir: PathLike) -> List[EventFile]:
+    def get_event_files(
+        self, events: PathLike
+    ) -> Tuple[List[EventFile], List[EventFile]]:
         events = Path(events)
-        mapping = EventMapping.load_from_file(hash_identifier(work_dir))
         failing = [
             EventFile(
                 events / "failing" / path,
                 run_id,
-                mapping,
+                self.mapping,
                 failing=True,
             )
             for run_id, path in enumerate(os.listdir(events / "failing"), start=0)
         ]
         passing = [
-            EventFile(events / "passing" / path, run_id, mapping, failing=False)
+            EventFile(events / "passing" / path, run_id, self.mapping, failing=False)
             for run_id, path in enumerate(
                 os.listdir(events / "passing"),
                 start=len(failing),
@@ -101,7 +114,7 @@ class EventCollector(ABC):
     ) -> List[EventFile]:
         shutil.rmtree(OUTPUT, ignore_errors=True)
         self.collect(OUTPUT, tests=tests, label=label)
-        failing, passing = self.get_event_files(OUTPUT, self.src)
+        failing, passing = self.get_event_files(OUTPUT)
         return failing + passing
 
 
@@ -111,8 +124,9 @@ class UnittestEventCollector(EventCollector):
         work_dir: PathLike,
         src: PathLike,
         environ: Optional[Dict[str, str]] = None,
+        mapping_path: Optional[PathLike] = None,
     ):
-        super().__init__(work_dir, src)
+        super().__init__(work_dir, src, mapping_path=mapping_path)
         self.environ = environ
 
     def collect(
@@ -133,8 +147,9 @@ class SystemtestEventCollector(EventCollector):
         src: PathLike,
         access: PathLike,
         environ: Optional[Dict[str, str]] = None,
+        mapping_path: Optional[PathLike] = None,
     ):
-        super().__init__(work_dir, src)
+        super().__init__(work_dir, src, mapping_path=mapping_path)
         self.access = access
         self.environ = environ
 

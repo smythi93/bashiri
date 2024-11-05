@@ -3,10 +3,11 @@ import string
 from abc import ABC, abstractmethod
 from typing import List, Dict, Tuple, Callable
 
+from sflkit.features.handler import EventHandler
+from sflkit.features.vector import FeatureVector
 from sflkit.runners.run import TestResult
 
 from bashiri.events import EventCollector
-from bashiri.features import EventHandler, FeatureVector
 from bashiri.learning import Oracle, Label
 
 
@@ -19,7 +20,7 @@ class RefinementLoop(ABC):
         iterations: int = 10,
     ):
         self.handler = handler
-        self.features = handler.feature_builder
+        self.features = handler.builder
         self.learned_oracle = oracle
         self.seeds = dict()
         for s in seeds:

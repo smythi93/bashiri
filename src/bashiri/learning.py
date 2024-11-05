@@ -1,18 +1,18 @@
 import enum
 import os
 from abc import ABC
-from typing import Collection, Sequence, Tuple, Any, Optional, List
+from typing import Sequence, Tuple, Any, Optional, List
 
 import pandas as pd
 import shap
 from joblib import dump, load
-from sflkit.runners.run import TestResult
+from sflkit.features.handler import EventHandler
+from sflkit.features.value import Feature
 from sklearn import svm, tree
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.neural_network import MLPClassifier
 
-from bashiri.features import FeatureVector, Feature
 from bashiri.reduce import FeatureSelection, DefaultSelection
 
 
@@ -37,18 +37,12 @@ class Oracle(ABC):
         self.x_train: pd.DataFrame = None
         self.y_train: pd.DataFrame = None
 
-    @staticmethod
     def prepare_data(
-        all_features: Sequence[Feature],
-        feature_vectors: Collection[FeatureVector],
+        self,
+        handler: EventHandler,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        data = list()
-        for feature_vector in feature_vectors:
-            num_dict = feature_vector.num_dict_vector(all_features)
-            num_dict["label"] = 1 if feature_vector.result == TestResult.FAILING else 0
-            data.append(num_dict)
-        data = pd.DataFrame(data)
-        return data.drop(columns="label"), data["label"]
+        data = handler.to_df(self.all_features)
+        return data.drop(columns=["test", "failing"]), data["failing"]
 
     def train(self):
         self.model.fit(
@@ -60,18 +54,18 @@ class Oracle(ABC):
     def fit(
         self,
         all_features: Sequence[Feature],
-        feature_vectors: Collection[FeatureVector],
+        handler: EventHandler,
     ):
         self.all_features = all_features
-        self.x_train, self.y_train = self.prepare_data(all_features, feature_vectors)
+        self.x_train, self.y_train = self.prepare_data(handler)
         self.train()
 
     def evaluate(
         self,
-        feature_vectors: Collection[FeatureVector],
+        handler: EventHandler,
         output_dict: bool = False,
     ) -> Tuple[str | dict, List[List[int]]]:
-        x_eval, y_eval = self.prepare_data(self.all_features, feature_vectors)
+        x_eval, y_eval = self.prepare_data(handler)
         return (
             self.classification_report(x_eval, y_eval, output_dict=output_dict),
             confusion_matrix(
@@ -98,9 +92,9 @@ class Oracle(ABC):
 
     def finalize(
         self,
-        feature_vectors: Collection[FeatureVector],
+        handler: EventHandler,
     ):
-        x_train, y_train = self.prepare_data(self.all_features, feature_vectors)
+        x_train, y_train = self.prepare_data(handler)
         self.x_train = pd.concat((self.x_train, x_train))
         self.y_train = pd.concat((self.y_train, y_train))
         self.train()

@@ -12,11 +12,11 @@ from pathlib import Path
 from typing import Optional, Sequence, Any, Dict, Tuple, List
 
 import sflkit.logger
+from sflkit.features.handler import EventHandler
 from sflkit.runners.run import TestResult
 from tqdm import tqdm
 
 from bashiri.events import EventCollector, instrument
-from bashiri.features import EventHandler, FeatureBuilder
 from bashiri.learning import DecisionTreeOracle
 
 REFACTORY = Path("refactory")
@@ -65,15 +65,18 @@ LIMIT = None
 
 
 def get_features_from_tests(
-    question: int, tests: Sequence[str], src: os.PathLike
-) -> FeatureBuilder:
+    question: int, tests: Sequence[str], src: os.PathLike, mapping_path: os.PathLike
+) -> EventHandler:
     collector = RefactoryEventCollector(
-        Path.cwd(), src, expected_results=EXPECTED_OUTPUTS.get(question, dict())
+        Path.cwd(),
+        src,
+        mapping_path,
+        expected_results=EXPECTED_OUTPUTS.get(question, dict()),
     )
     events = collector.get_events(tests)
     handler = EventHandler()
     handler.handle_files(events)
-    return handler.feature_builder
+    return handler
 
 
 def get_tests(question: int, path: Path, limit: Optional[int] = None) -> List[str]:
@@ -96,22 +99,25 @@ def get_tests(question: int, path: Path, limit: Optional[int] = None) -> List[st
 
 
 def get_features(
-    question: int, path: Path, src: os.PathLike, limit: Optional[int] = None
+    question: int,
+    path: Path,
+    src: os.PathLike,
+    mapping_path: os.PathLike,
+    limit: Optional[int] = None,
 ):
-    return get_features_from_tests(question, get_tests(question, path, limit), src)
+    return get_features_from_tests(
+        question, get_tests(question, path, limit), src, mapping_path
+    )
 
 
-def get_model(question: int, ans_path, src: os.PathLike):
-    features = get_features(question, ans_path, src)
-    all_features = features.get_all_features()
+def get_model(question: int, ans_path, src: os.PathLike, mapping_path: os.PathLike):
+    handler = get_features(question, ans_path, src, mapping_path)
+    all_features = handler.builder.get_all_features()
     path = Path("dt")
     if path.exists():
         os.remove(path)
     model = DecisionTreeOracle(path=path)
-    model.fit(
-        all_features,
-        features.get_vectors(),
-    )
+    model.fit(all_features, handler)
     return model
 
 
@@ -130,20 +136,23 @@ def run_on_example(
     name = f"wrong_{question}_{identifier:03d}"
     path, eval_path = QUESTIONS[question]
     file: Path = path / CODE / "wrong" / f"{name}.py"
+    mapping_path = Path(f"mapping_{time.time()}.json")
     if file.exists() and verify_example(question, file, path / ANS, limit=limit):
         LOGGER.info(f"Start evaluation of {name}")
         if functions:
-            instrument(file, DST, events=["FUNCTION_ENTER"])
+            instrument(file, DST, mapping_path, events=["FUNCTION_ENTER"])
         else:
-            instrument(file, DST)
+            instrument(file, DST, mapping_path)
         LOGGER.info(f"Get evaluation features of {name}")
-        eval_features = get_features(question, eval_path, file, limit=limit)
+        eval_features = get_features(
+            question, eval_path, file, mapping_path, limit=limit
+        )
         LOGGER.info(f"Get oracle for {name}")
         start = time.time()
-        model = get_model(question, path / ANS, file)
+        model = get_model(question, path / ANS, file, mapping_path)
         timing = time.time() - start
         report_eval, confusion_matrix = model.evaluate(
-            eval_features.get_vectors(),
+            eval_features,
             output_dict=True,
         )
         result = {
@@ -274,9 +283,13 @@ def oracle(test: str, expected_results: Dict[str, Any] = None):
 
 class RefactoryEventCollector(EventCollector):
     def __init__(
-        self, work_dir: os.PathLike, src: os.PathLike, expected_results: Dict[str, Any]
+        self,
+        work_dir: os.PathLike,
+        src: os.PathLike,
+        mapping_path: os.PathLike,
+        expected_results: Dict[str, Any],
     ):
-        super().__init__(work_dir, src)
+        super().__init__(work_dir, src, mapping_path)
         self.expected_results = expected_results
 
     def collect(
