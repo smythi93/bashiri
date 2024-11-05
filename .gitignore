@@ -176,4 +176,5 @@ evaluation/refactory
 evaluation/data.zip
 *EVENTS_PATH
 *.pdf
-evaluation/mapping_*.josn
+evaluation/mapping_*.json
+evaluation/middle.json
