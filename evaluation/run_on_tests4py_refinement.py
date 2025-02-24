@@ -1,31 +1,28 @@
 import argparse
-import hashlib
 import json
 import logging
 import os
 import random
-import shutil
 import time
 from pathlib import Path
-import shlex
-from typing import Optional, Sequence, Any, Dict, List
+from typing import Dict, List
 
 import sflkit.logger
-import tests4py.logger
-from tqdm import tqdm
-
 import tests4py.api as t4p
+import tests4py.logger
+from sflkit.features.handler import EventHandler
+from sflkit.features.vector import FeatureVector
 from sflkit.runners.run import TestResult
 from tests4py import sfl
-from tests4py.api import run
 from tests4py.projects import Project
+from tqdm import tqdm
 
 from bashiri.events import EventCollector
-from bashiri.features import EventHandler, FeatureVector
+from bashiri.learning import Bashiri, Oracle, Label, CausalTree
 from bashiri.refinement import (
     DifferenceInterestRefinement,
 )
-from bashiri.learning import DecisionTreeOracle, Oracle, Label
+from run_on_tests4py import Tests4PyEventCollector, N, F, SEED, MAPPING
 
 TMP = Path("tmp_tests")
 TEST_DIR = TMP / "test_dir"
@@ -35,10 +32,7 @@ EVENTS_EVALUATION = EVENTS_DIR / "eval"
 TRAINING = TMP / "train"
 EVALUATION = TMP / "eval"
 
-N = 200
-F = 100
 RLS = [100]
-SEED = 42
 
 RESULTS_PATH = Path("results")
 
@@ -51,7 +45,9 @@ def evaluate_project(project: Project):
         raise report.raised
     location = Path(report.location)
     logging.info(f"Instrumenting and compiling subject {project}")
-    report = sfl.sflkit_instrument(TEST_DIR, location)
+    MAPPING.mkdir(parents=True, exist_ok=True)
+    mapping_path = MAPPING / f"{project}.json"
+    report = sfl.sflkit_instrument(TEST_DIR, location, mapping=mapping_path)
     if report.raised:
         raise report.raised
     logging.info(f"Generating {N} tests ({F} failing) for evaluation")
@@ -64,7 +60,11 @@ def evaluate_project(project: Project):
             eval_inputs.append(fp.read())
     # do not split input with shlex for cookiecutter
     eval_collector = Tests4PyEventCollector(
-        TEST_DIR, location, progress=True, split=project.project_name != "cookiecutter"
+        TEST_DIR,
+        location,
+        progress=True,
+        split=project.project_name != "cookiecutter",
+        mapping=mapping_path,
     )
     logging.info(f"Collecting events")
     eval_events = eval_collector.get_events(eval_inputs)
@@ -72,7 +72,7 @@ def evaluate_project(project: Project):
     logging.info(f"Constructing features")
     for e in tqdm(eval_events):
         eval_handler.handle(e)
-    assert len(eval_handler.feature_builder.feature_vectors) == len(eval_events)
+    assert len(eval_handler.builder.feature_vectors) == len(eval_events)
 
     results = dict()
 
@@ -97,22 +97,23 @@ def evaluate_project(project: Project):
             location,
             progress=True,
             split=project.project_name != "cookiecutter",
+            mapping=mapping_path,
         )
         events = collector.get_events(inputs)
         handler = EventHandler()
         handler.handle_files(events)
-        all_features = handler.feature_builder.get_all_features()
+        all_features = handler.builder.get_all_features()
         path = Path("../dt")
         if path.exists():
             os.remove(path)
-        oracle = DecisionTreeOracle(path=path)
+        oracle = Bashiri(handler, CausalTree(), events)
         oracle.fit(
             all_features,
-            handler.feature_builder.get_vectors(),
+            handler,
         )
         obe_time = time.time() - obe_time
         report_eval, confusion = oracle.evaluate(
-            eval_handler.feature_builder.get_vectors(),
+            eval_handler.builder.get_vectors(),
             output_dict=True,
         )
         result["eval"] = report_eval
@@ -124,8 +125,8 @@ def evaluate_project(project: Project):
             logging.info(
                 f"Refining and evaluating initial oracle with {gens} generations"
             )
-            refinement_oracle = DecisionTreeOracle()
-            refinement_oracle.fit(all_features, handler.feature_builder.get_vectors())
+            refinement_oracle = Bashiri(handler, CausalTree(), events)
+            refinement_oracle.fit(all_features, handler)
             refinement_time = time.time()
             refinement_loop = Tests4PyEvaluationRefinement(
                 handler.copy(),
@@ -143,7 +144,7 @@ def evaluate_project(project: Project):
             refinement_loop.run()
             refinement_time = time.time() - refinement_time
             refinement_report, refinement_confusion = refinement_oracle.evaluate(
-                eval_handler.feature_builder.get_vectors(), output_dict=True
+                eval_handler.builder.get_vectors(), output_dict=True
             )
             refinement_results = dict()
             refinement_results["eval"] = refinement_report
@@ -171,62 +172,6 @@ def evaluate_project(project: Project):
 
     with open(RESULTS_PATH / f"{project.get_identifier()}_refinement.json", "w") as fp:
         json.dump(results, fp, indent=2)
-
-
-class Tests4PyEventCollector(EventCollector):
-    def __init__(
-        self, work_dir: os.PathLike, src: os.PathLike, progress=False, split=True
-    ):
-        super().__init__(work_dir, src)
-        self.progress = progress
-        self.split = split
-
-    @staticmethod
-    def convert(test_result: TestResult) -> TestResult:
-        if test_result.name == "FAILING":
-            return TestResult.FAILING
-        else:
-            return TestResult.PASSING
-
-    def collect(
-        self,
-        output: os.PathLike,
-        tests: Optional[Sequence[Any] | str] = None,
-        label: Optional[TestResult] = None,
-    ):
-        output = Path(output)
-        output.mkdir(parents=True, exist_ok=True)
-        for test_result in TestResult:
-            (output / test_result.get_dir()).mkdir(parents=True, exist_ok=True)
-        for test in tqdm(tests) if self.progress else tests:
-            test_input = test
-            if isinstance(test, str):
-                if self.split:
-                    try:
-                        test_input = shlex.split(test)
-                    except ValueError:
-                        pass
-                else:
-                    test_input = [test]
-            if label is None:
-                report = run(self.work_dir, test_input, invoke_oracle=True)
-                if report.raised:
-                    test_result = TestResult.UNDEFINED
-                else:
-                    test_result = self.convert(report.test_result)
-            else:
-                report = run(self.work_dir, test_input)
-                if report.raised:
-                    raise report.raised
-                test_result = label
-            self.runs[test] = test_result
-            if os.path.exists(self.work_dir / "EVENTS_PATH"):
-                shutil.move(
-                    self.work_dir / "EVENTS_PATH",
-                    output
-                    / test_result.get_dir()
-                    / hashlib.md5(" ".join(test).encode("utf8")).hexdigest(),
-                )
 
 
 class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):

@@ -64,14 +64,20 @@ def instrument(
 
 class EventCollector(ABC):
     def __init__(
-        self, work_dir: PathLike, src: PathLike, mapping_path: Optional[PathLike] = None
+        self,
+        work_dir: PathLike,
+        src: PathLike,
+        mapping: Optional[EventMapping | PathLike] = None,
     ):
         self.work_dir = Path(work_dir)
         self.src = Path(src)
         self.runs: Dict[str, TestResult] = dict()
-        self.mapping = EventMapping.load_from_file(
-            Path(mapping_path or EventMapping.get_path(self.identifier())),
-        )
+        if isinstance(mapping, EventMapping):
+            self.mapping = mapping
+        else:
+            self.mapping = EventMapping.load_from_file(
+                Path(mapping or EventMapping.get_path(self.identifier())),
+            )
 
     def identifier(self):
         return hash_identifier(self.work_dir)
@@ -124,9 +130,9 @@ class UnittestEventCollector(EventCollector):
         work_dir: PathLike,
         src: PathLike,
         environ: Optional[Dict[str, str]] = None,
-        mapping_path: Optional[PathLike] = None,
+        mapping: Optional[EventMapping | PathLike] = None,
     ):
-        super().__init__(work_dir, src, mapping_path=mapping_path)
+        super().__init__(work_dir, src, mapping=mapping)
         self.environ = environ
 
     def collect(
@@ -147,9 +153,9 @@ class SystemtestEventCollector(EventCollector):
         src: PathLike,
         access: PathLike,
         environ: Optional[Dict[str, str]] = None,
-        mapping_path: Optional[PathLike] = None,
+        mapping: Optional[EventMapping | PathLike] = None,
     ):
-        super().__init__(work_dir, src, mapping_path=mapping_path)
+        super().__init__(work_dir, src, mapping=mapping)
         self.access = access
         self.environ = environ
 

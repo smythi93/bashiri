@@ -4,43 +4,79 @@ import json
 import logging
 import os
 import random
+import shlex
 import shutil
 import time
+from contextlib import contextmanager
 from pathlib import Path
-import shlex
-from typing import Optional, Sequence, Any, Dict, List
+from typing import Optional, Sequence, Any, Tuple
 
 import sflkit.logger
-import tests4py.logger
-from tqdm import tqdm
-
 import tests4py.api as t4p
+import tests4py.logger
+from sflkit.events.mapping import EventMapping
+from sflkit.features.handler import EventHandler
 from sflkit.runners.run import TestResult
 from tests4py import sfl
 from tests4py.api import run
 from tests4py.projects import Project
+from tqdm import tqdm
 
 from bashiri.events import EventCollector
-from bashiri.features import EventHandler, FeatureVector
-from bashiri.refinement import (
-    DifferenceInterestRefinement,
-)
-from bashiri.learning import DecisionTreeOracle, Oracle, Label
+from bashiri.learning import Bashiri, CausalTree
+from bashiri.mapping.mapping import Mapping, MappingCreator
+from bashiri.mapping.patch import PatchTranslator
 
 TMP = Path("tmp_tests")
 TEST_DIR = TMP / "test_dir"
 EVENTS_DIR = TMP / "events"
 EVENTS_TRAINING = EVENTS_DIR / "train"
 EVENTS_EVALUATION = EVENTS_DIR / "eval"
+EVENTS_FIXED = EVENTS_DIR / "fixed"
 TRAINING = TMP / "train"
 EVALUATION = TMP / "eval"
+EVALUATION_FIXED = TMP / "eval_fixed"
+FIXED_DIR = TMP / "fixed"
+MAPPING = Path("mappings")
 
-N = 200
-F = 100
-RLS = [10, 100]
+N = 100
+F = 50
 SEED = 42
 
+N_MAPPING = 10
+F_MAPPING = 5
+
 RESULTS_PATH = Path("results")
+
+
+@contextmanager
+def fixed(project: Project):
+    project.buggy = False
+    yield
+    project.buggy = True
+
+
+def get_mapping(project: Project) -> Tuple[EventMapping, EventMapping, Mapping]:
+    mapping_bug = MAPPING / f"{project}.json"
+    with fixed(project):
+        mapping_fix = MAPPING / f"{project}.json"
+    if not mapping_bug.exists():
+        raise FileNotFoundError(f"Mapping bug not found for {project}")
+    if not mapping_fix.exists():
+        raise FileNotFoundError(f"Mapping fix not found for {project}")
+    mapping_bug = EventMapping.load_from_file(mapping_bug, "")
+    mapping_fix = EventMapping.load_from_file(mapping_fix, "")
+
+    patch = PatchTranslator.build_t4p_translator(project)
+    creator = MappingCreator(mapping_bug)
+    mapping = creator.create(mapping_fix, patch)
+    mapping.dump(MAPPING / f"{project.get_identifier()}_translation.json", indent=1)
+    translation_mapping = EventMapping(
+        mapping_bug.mapping,
+        translation=mapping.get_translation(),
+        alternative_mapping=mapping_fix.mapping,
+    )
+    return translation_mapping
 
 
 def evaluate_project(project: Project):
@@ -51,20 +87,43 @@ def evaluate_project(project: Project):
         raise report.raised
     location = Path(report.location)
     logging.info(f"Instrumenting and compiling subject {project}")
-    report = sfl.sflkit_instrument(TEST_DIR, location)
+    MAPPING.mkdir(parents=True, exist_ok=True)
+    mapping_path = MAPPING / f"{project}.json"
+    report = sfl.sflkit_instrument(TEST_DIR, location, mapping=mapping_path)
     if report.raised:
         raise report.raised
     logging.info(f"Generating {N} tests ({F} failing) for evaluation")
     report = t4p.systemtest_generate(TEST_DIR, EVALUATION, n=N, p=F)
-    eval_inputs = []
     if report.raised:
         raise report.raised
+
+    with fixed(project):
+        report = t4p.checkout(project)
+        if report.raised:
+            raise report.raised
+        fixed_mapping_path = MAPPING / f"{project}.json"
+        report = sfl.sflkit_instrument(FIXED_DIR, location, mapping=fixed_mapping_path)
+        if report.raised:
+            raise report.raised
+        report = t4p.systemtest_generate(
+            FIXED_DIR, EVALUATION_FIXED, n=N_MAPPING, p=F_MAPPING
+        )
+        if report.raised:
+            raise report.raised
+
+    translation = get_mapping(project)
+
+    eval_inputs = []
     for file in os.listdir(EVALUATION):
         with open(EVALUATION / file, "r") as fp:
             eval_inputs.append(fp.read())
     # do not split input with shlex for cookiecutter
     eval_collector = Tests4PyEventCollector(
-        TEST_DIR, location, progress=True, split=project.project_name != "cookiecutter"
+        TEST_DIR,
+        location,
+        progress=True,
+        split=project.project_name != "cookiecutter",
+        mapping=mapping_path,
     )
     logging.info(f"Collecting events")
     eval_events = eval_collector.get_events(eval_inputs)
@@ -72,12 +131,33 @@ def evaluate_project(project: Project):
     logging.info(f"Constructing features")
     for e in tqdm(eval_events):
         eval_handler.handle(e)
-    assert len(eval_handler.feature_builder.feature_vectors) == len(eval_events)
+    assert len(eval_handler.builder.feature_vectors) == len(eval_events)
+
+    with fixed(project):
+        mapping_inputs = []
+        for file in os.listdir(EVALUATION_FIXED):
+            with open(EVALUATION_FIXED / file, "r") as fp:
+                mapping_inputs.append(fp.read())
+        # do not split input with shlex for cookiecutter
+        mapping_collector = Tests4PyEventCollector(
+            FIXED_DIR,
+            location,
+            progress=True,
+            split=project.project_name != "cookiecutter",
+            mapping=translation,
+        )
+        logging.info(f"Collecting events for fixed version")
+        mapping_events = mapping_collector.get_events(mapping_inputs)
+        mapping_handler = EventHandler()
+        logging.info(f"Constructing features for fixed version")
+        for e in tqdm(mapping_events):
+            mapping_handler.handle(e)
+        assert len(mapping_handler.builder.feature_vectors) == len(mapping_events)
 
     results = dict()
 
     logging.info(f"Running configurations")
-    for t, f in ((5, 1), (10, 1), (10, 2), (30, 3)):
+    for t, f in ((5, 1), (10, 1), (10, 2)):
         logging.info(f"Starting evaluation of {t} tests and {f} failing")
         result = dict()
 
@@ -97,27 +177,33 @@ def evaluate_project(project: Project):
             location,
             progress=True,
             split=project.project_name != "cookiecutter",
+            mapping=mapping_path,
         )
         events = collector.get_events(inputs)
         handler = EventHandler()
         handler.handle_files(events)
-        all_features = handler.feature_builder.get_all_features()
         path = Path("../dt")
         if path.exists():
             os.remove(path)
-        oracle = DecisionTreeOracle(path=path)
-        oracle.fit(
-            all_features,
-            handler.feature_builder.get_vectors(),
+        bashiri = Bashiri(handler, CausalTree(), events)
+        bashiri.fit(
+            bashiri.all_features,
+            handler,
         )
         obe_time = time.time() - obe_time
-        report_eval, confusion = oracle.evaluate(
-            eval_handler.feature_builder.get_vectors(),
+        report_eval, confusion = bashiri.evaluate(
+            eval_handler,
+            output_dict=True,
+        )
+        mapping_eval, mapping_confusion = bashiri.evaluate(
+            mapping_handler,
             output_dict=True,
         )
         result["eval"] = report_eval
+        result["mapping_eval"] = mapping_eval
         result["time"] = obe_time
         result["confusion"] = confusion
+        result["mapping_confusion"] = mapping_confusion
 
         results[f"tests_{t}_failing_{f}"] = result
 
@@ -127,9 +213,14 @@ def evaluate_project(project: Project):
 
 class Tests4PyEventCollector(EventCollector):
     def __init__(
-        self, work_dir: os.PathLike, src: os.PathLike, progress=False, split=True
+        self,
+        work_dir: os.PathLike,
+        src: os.PathLike,
+        progress=False,
+        split=True,
+        mapping=None,
     ):
-        super().__init__(work_dir, src)
+        super().__init__(work_dir, src, mapping=mapping)
         self.progress = progress
         self.split = split
 
@@ -179,58 +270,6 @@ class Tests4PyEventCollector(EventCollector):
                     / test_result.get_dir()
                     / hashlib.md5(" ".join(test).encode("utf8")).hexdigest(),
                 )
-
-
-class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):
-    def __init__(
-        self,
-        handler: EventHandler,
-        oracle: Oracle,
-        seeds: Dict[int, str],
-        collector: EventCollector,
-        iterations: int = 10,
-        gens: int = 10,
-        min_mutations: int = 1,
-        max_mutations: int = 10,
-        exponent: float = 5,
-        threshold: float = 0.05,
-    ):
-        super().__init__(
-            handler,
-            oracle,
-            seeds,
-            collector,
-            iterations=iterations,
-            gens=gens,
-            min_mutations=min_mutations,
-            max_mutations=max_mutations,
-            exponent=exponent,
-            threshold=threshold,
-        )
-        assert isinstance(collector, Tests4PyEventCollector)
-
-    def get_events(self, inputs: List[str]):
-        return self.collector.get_events(
-            inputs,
-        )
-
-    def oracle(self, args: str, features: FeatureVector) -> Label:
-        if args in self.collector.runs:
-            return (
-                Label.BUG
-                if self.collector.runs[args] == TestResult.FAILING
-                else Label.NO_BUG
-            )
-        else:
-            logging.warning(f"cannot find {args} in run")
-        return Label.NO_BUG
-
-    def run(self):
-        for _ in tqdm(range(self.iterations)):
-            self.iteration()
-            self.all_features = self.features.all_features
-        if self.new_feature_vectors:
-            self.learned_oracle.finalize(self.new_feature_vectors)
 
 
 def main(project_name: str, bug_id: int):

@@ -164,31 +164,35 @@ class Confusion:
 
 
 EVAL = "eval"
+MAPPING_EVAL = "mapping_eval"
 TIME = "time"
 BUG = "1"
 NO_BUG = "0"
 CONFUSION = "confusion"
+MAPPING_CONFUSION = "mapping_confusion"
 
 
-def get_confusion(dictionary: dict, name="", exclude_no_eval=True) -> Confusion:
+def get_confusion(
+    dictionary: dict, name="", exclude_no_eval=False, conf=CONFUSION, ev=EVAL
+) -> Confusion:
     result = Confusion(total=0)
-    if CONFUSION not in dictionary:
-        print(f"skip {name}: no {CONFUSION}")
+    if conf not in dictionary:
+        print(f"skip {name}: no {conf}")
         return result
-    if EVAL not in dictionary:
-        print(f"skip {name}: no {EVAL}")
+    if ev not in dictionary:
+        print(f"skip {name}: no {ev}")
         return result
     if TIME not in dictionary:
         print(f"skip {name}: no {TIME}")
         return result
-    cm = dictionary[CONFUSION]
+    cm = dictionary[conf]
     if len(cm) == 1:
         if exclude_no_eval:
             return result
         if len(cm[0]) != 1:
-            print(f"skip {name}: {CONFUSION} not correct format")
+            print(f"skip {name}: {conf} not correct format")
             return result
-        if BUG in dictionary[EVAL]:
+        if BUG in dictionary[ev]:
             result = Confusion(tn=cm[0][0], perfect=1, final=True)
         else:
             result = Confusion(tp=cm[0][0], perfect=1, final=True)

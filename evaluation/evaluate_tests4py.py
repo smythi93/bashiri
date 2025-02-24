@@ -5,11 +5,22 @@ from typing import Tuple, List
 
 import matplotlib.pyplot as plt
 
-from confusion import Confusion, get_confusion, EVAL, CONFUSION, TIME
+from confusion import (
+    Confusion,
+    get_confusion,
+    EVAL,
+    CONFUSION,
+    TIME,
+    MAPPING_CONFUSION,
+    MAPPING_EVAL,
+)
 
 RESULTS = Path("results")
 
 MIDDLE_1 = RESULTS / "middle_1.json"
+MIDDLE_2 = RESULTS / "middle_2.json"
+MARKUP_1 = RESULTS / "markup_1.json"
+MARKUP_2 = RESULTS / "markup_2.json"
 COOKIECUTTER_2 = RESULTS / "cookiecutter_2.json"
 COOKIECUTTER_3 = RESULTS / "cookiecutter_3.json"
 COOKIECUTTER_4 = RESULTS / "cookiecutter_4.json"
@@ -25,39 +36,49 @@ NEW_CONFUSION = f"{CONFUSION}_new"
 
 def get_results(
     path: Path, refinement: bool = False
-) -> Tuple[Confusion, Confusion, Confusion, List[float], List[float], List[float]]:
+) -> Tuple[
+    Confusion, Confusion, Confusion, Confusion, List[float], List[float], List[float]
+]:
     results = Confusion(total=0)
+    results_mapping = Confusion(total=0)
     results_refinement = Confusion(total=0)
     results_new_tests = Confusion(total=0)
     accuracies = list()
     precisions = list()
     recalls = list()
     if path.exists():
-        refactory_results = json.loads(path.read_text("utf8"))
-        for config in refactory_results:
-            tmp_results = get_confusion(refactory_results[config], f"{path}_{config}")
+        tests4py_results = json.loads(path.read_text("utf8"))
+        for config in tests4py_results:
+            tmp_results = get_confusion(tests4py_results[config], f"{path}_{config}")
             accuracies.append(tmp_results.accuracy())
             precisions.append(tmp_results.precision_bug())
             recalls.append(tmp_results.recall_bug())
             results += tmp_results
+            tmp_mapping_results = get_confusion(
+                tests4py_results[config],
+                f"{path}_{config}_mapping",
+                conf=MAPPING_CONFUSION,
+                ev=MAPPING_EVAL,
+            )
+            results_mapping += tmp_mapping_results
             if refinement:
-                for refinement_conf in refactory_results[config][REFINEMENT]:
+                for refinement_conf in tests4py_results[config][REFINEMENT]:
                     results_refinement += get_confusion(
-                        refactory_results[config][REFINEMENT][refinement_conf],
+                        tests4py_results[config][REFINEMENT][refinement_conf],
                         f"{path}_{config}_{REFINEMENT}_{refinement}",
                     )
                     if (
                         NEW_EVAL
-                        in refactory_results[config][REFINEMENT][refinement_conf]
+                        in tests4py_results[config][REFINEMENT][refinement_conf]
                         and NEW_CONFUSION
-                        in refactory_results[config][REFINEMENT][refinement_conf]
+                        in tests4py_results[config][REFINEMENT][refinement_conf]
                     ):
                         results_new_tests += get_confusion(
                             {
-                                EVAL: refactory_results[config][REFINEMENT][
+                                EVAL: tests4py_results[config][REFINEMENT][
                                     refinement_conf
                                 ][NEW_EVAL],
-                                CONFUSION: refactory_results[config][REFINEMENT][
+                                CONFUSION: tests4py_results[config][REFINEMENT][
                                     refinement_conf
                                 ][NEW_CONFUSION],
                                 TIME: 0,
@@ -67,6 +88,7 @@ def get_results(
                         )
     return (
         results,
+        results_mapping,
         results_refinement,
         results_new_tests,
         accuracies,
@@ -77,6 +99,7 @@ def get_results(
 
 def main(refinement: bool = False):
     results = Confusion(total=0)
+    results_mapping = Confusion(total=0)
     results_refinement = Confusion(total=0)
     results_new_tests = Confusion(total=0)
     accuracies = dict()
@@ -85,6 +108,7 @@ def main(refinement: bool = False):
     per_subject = dict()
     for path in [
         MIDDLE_1,
+        MIDDLE_2,
         FASTAPI_1,
         PYSNOOPER_2,
         PYSNOOPER_3,
@@ -96,8 +120,9 @@ def main(refinement: bool = False):
         if refinement:
             parts = path.parts
             path = Path(*parts[:-1], parts[-1].replace(".json", "_refinement.json"))
-        r, rr, rnt, as_, ps_, rs_ = get_results(path, refinement=refinement)
+        r, rm, rr, rnt, as_, ps_, rs_ = get_results(path, refinement=refinement)
         results += r
+        results_mapping += rm
         results_refinement += rr
         results_new_tests += rnt
         name = path.parts[-1].split(".")[0]
@@ -108,6 +133,11 @@ def main(refinement: bool = False):
 
     print("Results:")
     results.print()
+    if not refinement:
+        print()
+        print("Results mapping:")
+        results_mapping.print()
+
     if refinement:
         print()
         print("Results refinement:")
