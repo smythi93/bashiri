@@ -32,7 +32,7 @@ EVENTS_EVALUATION = EVENTS_DIR / "eval"
 TRAINING = TMP / "train"
 EVALUATION = TMP / "eval"
 
-RLS = [100]
+RLS = [50]
 
 RESULTS_PATH = Path("results")
 
@@ -113,7 +113,7 @@ def evaluate_project(project: Project):
         )
         obe_time = time.time() - obe_time
         report_eval, confusion = oracle.evaluate(
-            eval_handler.builder.get_vectors(),
+            eval_handler,
             output_dict=True,
         )
         result["eval"] = report_eval
@@ -138,13 +138,14 @@ def evaluate_project(project: Project):
                     location,
                     progress=False,
                     split=project.project_name != "cookiecutter",
+                    mapping=mapping_path,
                 ),
                 gens=gens,
             )
             refinement_loop.run()
             refinement_time = time.time() - refinement_time
             refinement_report, refinement_confusion = refinement_oracle.evaluate(
-                eval_handler.builder.get_vectors(), output_dict=True
+                eval_handler, output_dict=True
             )
             refinement_results = dict()
             refinement_results["eval"] = refinement_report
@@ -161,7 +162,7 @@ def evaluate_project(project: Project):
                 )
             )
             if refinement_loop.new_feature_vectors:
-                report_new, confusion_new = oracle.evaluate(
+                report_new, confusion_new = oracle.evaluate_vectors(
                     refinement_loop.new_feature_vectors, output_dict=True
                 )
                 refinement_results["eval_new"] = report_new

@@ -5,10 +5,21 @@ from typing import List, Dict, Tuple, Callable
 
 from sflkit.features.handler import EventHandler
 from sflkit.features.vector import FeatureVector
+from sflkit.model.model import Model
 from sflkit.runners.run import TestResult
 
 from bashiri.events import EventCollector
 from bashiri.learning import Oracle, Label
+
+
+def copy(self):
+    new_handler = EventHandler()
+    new_handler.builder = self.builder.copy()
+    new_handler.model = Model(new_handler.builder)
+    return new_handler
+
+
+EventHandler.copy = copy
 
 
 class RefinementLoop(ABC):
