@@ -111,8 +111,8 @@ def main(refinement: bool = False):
         FASTAPI_1,
         PYSNOOPER_2,
         PYSNOOPER_3,
-        COOKIECUTTER_4,
         COOKIECUTTER_3,
+        COOKIECUTTER_4,
         COOKIECUTTER_2,
     ]:
         if refinement:

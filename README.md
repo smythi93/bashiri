@@ -1,26 +1,21 @@
-# bashiri
+# BASHIRI: Learning Failure Oracles from Test Suites
 
-Bashir is an approach to infer failure oracles from a small test suite automatically.
+BASHIRI is an approach to infer failure oracles from a small test suite automatically.
 
 ## Abstract
 
-When fixing a program - be it manually or through automated repair - it is crucial that the fix (a) entirely fixes previously failing runs and (b) does not impact previously passing runs.
-Both properties are typically validated by a *test suite*.
-However, such validation still brings the risks of *overspecialization* (the patch overfitting the failing test(s)) and *overgeneralization* (the patch affecting passing runs not in the test suite).
-These threats are especially present for *functional* failures, less noticeable than crashes or hangs.
-
-We introduce *bashiri*, an approach that deduces *failure oracles* from existing test suites with labeled outcomes.
-bashiri gathers features during initial test case executions (like coverage of specific lines or variable relationships).
-From these features, bashiri trains a *model* as an oracle capable of predicting test outcomes for unseen, non-crashing runs:
-"The failure occurs if Line~6 is executed and y < x holds".
-
-In our evaluation, the oracles learned by bashiri predicted test outcomes with 87% accuracy.
-For two-thirds of real-world subjects investigated, the bashiri oracles achieved 100% correctness when differentiating passing and failing test scenarios due to bashiri's fine-grained features.
-The resulting oracles can be easily read and assessed by humans, who can use them to assess the quality of fixes, automatically predict software failures, guide test generation towards likely failures, and more.
+When fixing a program-be it manually or through automated repair-it is crucial that the fix (1) entirely fixes previously failing runs and (2) does not impact previously passing runs.
+Both properties are typically validated by a _test suite_ that leverages _oracles_ to determine if a run is passing or failing.
+   
+We introduce _BASHIRI_, an approach that deduces _failure oracles_ from existing test suites with labeled outcomes.
+_BASHIRI_ is build on execution-feature-driven debugging, that collects features describing the execution of a program to infer a diagnosis. 
+Our approach extends this idea combined with causal learning to produce a testing oracle.
+   
+In our evaluation, the oracles learned by _BASHIRI_ predicted test outcomes with 95% accuracy, demonstrating the approach's effectiveness and quality of the learned oracles.
 
 ## Usage
 
-For bashiri, you need to instrument your subject.
+For BASHIRI, you need to instrument your subject.
 ```python
 instrument("middle.py", "tmp.py")
 ```
@@ -40,28 +35,31 @@ handler = EventHandler()
 handler.handle_files(events)
 ```
 
-Now, we can leverage bashiri's learning to infer a failure oracle.
+Now, we can leverage BASHIRI's learning to infer a failure oracle.
 ```python
-oracle = DecisionTreeOracle()
-oracle.fit(
-    handler.feature_builder.get_all_features(),
-    handler.feature_builder.get_vectors(),
+bashiri = Bashiri(handler, CausalTree(), events)
+bashiri.fit(
+    bashiri.all_features,
+    handler,
 )
 ``` 
 
 Now, we can leverage the collector, handle, and oracle to identify the result of an unseen execution/test case with high accuracy.
 
-We provide an example of this walk-trough in `evaluation/example.ipynb`.
+## Mapping
 
+The mapping approach infers connections between the events if different versions of a program, e.g., a faulty and a fixed version.
+This mapping allows to continuously apply the learned oracles.
 
-## Explainibility
-
-We have incorporated mechanisms to explain oracles by analyzing their underlying model or interpreting them using SHAP[1].
 ```python
-from sklearn import tree
-
-explanation = oracle.explain()
-tree.plot_tree(oracle.model)
+patch = PatchTranslator.build_t4p_translator(project)
+creator = MappingCreator(mapping_bug)
+mapping = creator.create(mapping_fix, patch)
+translation_mapping = EventMapping(
+    mapping_bug.mapping,
+    translation=mapping.get_translation(),
+    alternative_mapping=mapping_fix.mapping,
+)
 ```
 
 ## Human-In-The-Loop
@@ -72,3 +70,7 @@ seeds = {i: s, for i, s in enumerate(passing + failing)}
 refinement = HumanOracleRefinement(handler, oracle, seeds, collector)
 refinement.run()
 ```
+
+# License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
