@@ -335,24 +335,26 @@ class Bashiri(DecisionTreeOracle):
         data: pd.DataFrame,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         x = data.drop(columns=["test", "failing"])
-        return (
-            pd.concat(
-                [
-                    x,
-                    pd.DataFrame(
-                        np.array(
-                            [
-                                self.treatments[treatment].predict(x.to_numpy())
-                                for treatment in self.treatments
-                            ]
-                        ).T,
-                        columns=list(self.treatments.keys()),
-                    ),
-                ],
-                axis=1,
-            ),
-            data["failing"],
-        )
+        if self.treatments:
+            return (
+                pd.concat(
+                    [
+                        x,
+                        pd.DataFrame(
+                            np.array(
+                                [
+                                    self.treatments[treatment].predict(x.to_numpy())
+                                    for treatment in self.treatments
+                                ]
+                            ).T,
+                            columns=list(self.treatments.keys()),
+                        ),
+                    ],
+                    axis=1,
+                ),
+                data["failing"],
+            )
+        return x, data["failing"]
 
     def get_treatment(self, n: int, op: Operation) -> Tuple[str, pd.DataFrame]:
         top_n = [str(a) for a in self.analysis[:n]]
