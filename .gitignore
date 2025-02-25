@@ -178,3 +178,4 @@ evaluation/data.zip
 *.pdf
 evaluation/mapping_*.json
 evaluation/middle.json
+evaluation/mappings

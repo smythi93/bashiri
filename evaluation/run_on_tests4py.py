@@ -157,7 +157,7 @@ def evaluate_project(project: Project):
     results = dict()
 
     logging.info(f"Running configurations")
-    for t, f in ((5, 1), (10, 1), (10, 2)):
+    for t, f in ((5, 1), (10, 1), (10, 2), (20, 2)):
         logging.info(f"Starting evaluation of {t} tests and {f} failing")
         result = dict()
 
