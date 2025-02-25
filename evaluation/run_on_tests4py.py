@@ -127,6 +127,7 @@ def evaluate_project(project: Project):
     )
     logging.info(f"Collecting events")
     eval_events = eval_collector.get_events(eval_inputs)
+    time.sleep(1)
     eval_handler = EventHandler()
     logging.info(f"Constructing features")
     for e in tqdm(eval_events):
@@ -180,6 +181,7 @@ def evaluate_project(project: Project):
             mapping=mapping_path,
         )
         events = collector.get_events(inputs)
+        time.sleep(1)
         handler = EventHandler()
         handler.handle_files(events)
         path = Path("../dt")
