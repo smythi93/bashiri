@@ -25,7 +25,6 @@ COOKIECUTTER_2 = RESULTS / "cookiecutter_2.json"
 COOKIECUTTER_3 = RESULTS / "cookiecutter_3.json"
 COOKIECUTTER_4 = RESULTS / "cookiecutter_4.json"
 FASTAPI_1 = RESULTS / "fastapi_1.json"
-FASTAPI_2 = RESULTS / "fastapi_2.json"
 PYSNOOPER_2 = RESULTS / "pysnooper_2.json"
 PYSNOOPER_3 = RESULTS / "pysnooper_3.json"
 
@@ -115,7 +114,6 @@ def main(refinement: bool = False):
         COOKIECUTTER_4,
         COOKIECUTTER_3,
         COOKIECUTTER_2,
-        FASTAPI_2,
     ]:
         if refinement:
             parts = path.parts
