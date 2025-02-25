@@ -58,7 +58,9 @@ class Mapping(abc.ABC):
     def get_translation(self) -> Dict[int, int]:
         translation = dict()
         for event_id, event in self:
-            translation[event_id] = self.map(event).event_id
+            mapped = self.map(event)
+            if mapped:
+                translation[event_id] = self.map(event).event_id
         return translation
 
 
