@@ -13,6 +13,13 @@ Our approach extends this idea combined with causal learning to produce a testin
    
 In our evaluation, the oracles learned by _BASHIRI_ predicted test outcomes with 95% accuracy, demonstrating the approach's effectiveness and quality of the learned oracles.
 
+## Installation
+
+To install BASHIRI and its dependencies, run the following command:
+```bash
+python -m pip install .
+```
+
 ## Usage
 
 For BASHIRI, you need to instrument your subject.

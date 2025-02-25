@@ -171,9 +171,6 @@ tmp.py
 dt
 */dt
 middle.py
-evaluation/refactory/eval
-evaluation/refactory
-evaluation/data.zip
 *EVENTS_PATH
 *.pdf
 evaluation/mapping_*.json
