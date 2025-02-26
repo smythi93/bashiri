@@ -1,5 +1,5 @@
 {
-  "tests_5_failing_1": {
+  "tests_0_5_failing_1": {
     "eval": {
       "0": {
         "precision": 1.0,
@@ -54,7 +54,7 @@
         "support": 10.0
       }
     },
-    "time": 4.142401695251465,
+    "time": 4.128807067871094,
     "confusion": [
       [
         50,
@@ -76,7 +76,7 @@
       ]
     ]
   },
-  "tests_10_failing_1": {
+  "tests_0_5_failing_2": {
     "eval": {
       "0": {
         "precision": 1.0,
@@ -131,7 +131,7 @@
         "support": 10.0
       }
     },
-    "time": 7.151700496673584,
+    "time": 4.649844408035278,
     "confusion": [
       [
         50,
@@ -153,7 +153,7 @@
       ]
     ]
   },
-  "tests_10_failing_2": {
+  "tests_0_10_failing_1": {
     "eval": {
       "0": {
         "precision": 1.0,
@@ -208,7 +208,7 @@
         "support": 10.0
       }
     },
-    "time": 6.597522020339966,
+    "time": 6.605112791061401,
     "confusion": [
       [
         50,
@@ -230,7 +230,7 @@
       ]
     ]
   },
-  "tests_20_failing_2": {
+  "tests_0_10_failing_2": {
     "eval": {
       "0": {
         "precision": 1.0,
@@ -285,7 +285,2009 @@
         "support": 10.0
       }
     },
-    "time": 12.590478897094727,
+    "time": 7.375999450683594,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_0_20_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 12.497893810272217,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_0_30_failing_3": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 17.616715669631958,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_1_5_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 0.94,
+        "f1-score": 0.9690721649484536,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 0.9433962264150944,
+        "recall": 1.0,
+        "f1-score": 0.970873786407767,
+        "support": 50.0
+      },
+      "accuracy": 0.97,
+      "macro avg": {
+        "precision": 0.9716981132075472,
+        "recall": 0.97,
+        "f1-score": 0.9699729756781104,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 0.9716981132075472,
+        "recall": 0.97,
+        "f1-score": 0.9699729756781104,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.097092390060425,
+    "confusion": [
+      [
+        47,
+        3
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_1_5_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.08822774887085,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_1_10_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 7.614362716674805,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_1_10_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 6.658691644668579,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_1_20_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 11.699958562850952,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_1_30_failing_3": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 18.313342809677124,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_2_5_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.155127763748169,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_2_5_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.106842041015625,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_2_10_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 7.706958055496216,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_2_10_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 6.658216238021851,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_2_20_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 12.514290809631348,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_2_30_failing_3": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 17.549499988555908,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_3_5_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.922494173049927,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_3_5_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.017927646636963,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_3_10_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 6.55826473236084,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_3_10_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 7.712404727935791,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_3_20_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 12.567235946655273,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_3_30_failing_3": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 17.61165761947632,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_4_5_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.053297519683838,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_4_5_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 0.42,
+        "f1-score": 0.5915492957746479,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 0.6329113924050633,
+        "recall": 1.0,
+        "f1-score": 0.7751937984496124,
+        "support": 50.0
+      },
+      "accuracy": 0.71,
+      "macro avg": {
+        "precision": 0.8164556962025317,
+        "recall": 0.71,
+        "f1-score": 0.6833715471121302,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 0.8164556962025317,
+        "recall": 0.71,
+        "f1-score": 0.6833715471121302,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 4.093250036239624,
+    "confusion": [
+      [
+        21,
+        29
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_4_10_failing_1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 6.803441524505615,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_4_10_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 7.299549579620361,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_4_20_failing_2": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 11.675890445709229,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "mapping_confusion": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "tests_4_30_failing_3": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "mapping_eval": {
+      "0": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "1": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "accuracy": 0.0,
+      "macro avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      },
+      "weighted avg": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 10.0
+      }
+    },
+    "time": 18.422761917114258,
     "confusion": [
       [
         50,
