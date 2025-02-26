@@ -43,6 +43,8 @@ N = 100
 F = 50
 SEED = 42
 
+REP = 5
+
 N_MAPPING = 10
 F_MAPPING = 5
 
@@ -158,56 +160,57 @@ def evaluate_project(project: Project):
     results = dict()
 
     logging.info(f"Running configurations")
-    for t, f in ((5, 1), (10, 1), (10, 2), (20, 2)):
-        logging.info(f"Starting evaluation of {t} tests and {f} failing")
-        result = dict()
+    for i in range(REP):
+        for t, f in ((5, 1), (5, 2), (10, 1), (10, 2), (20, 2), (30, 3)):
+            logging.info(f"Starting evaluation of {t} tests and {f} failing")
+            result = dict()
 
-        report = t4p.systemtest_generate(TEST_DIR, TRAINING, n=t, p=f)
-        if report.raised:
-            raise report.raised
+            report = t4p.systemtest_generate(TEST_DIR, TRAINING, n=t, p=f)
+            if report.raised:
+                raise report.raised
 
-        inputs = []
-        for file in os.listdir(TRAINING):
-            with open(TRAINING / file, "r") as fp:
-                inputs.append(fp.read())
-        logging.info(f"Training and evaluating initial oracle")
-        obe_time = time.time()
-        # do not split input with shlex for cookiecutter
-        collector = Tests4PyEventCollector(
-            TEST_DIR,
-            location,
-            progress=True,
-            split=project.project_name != "cookiecutter",
-            mapping=mapping_path,
-        )
-        events = collector.get_events(inputs)
-        time.sleep(1)
-        handler = EventHandler()
-        handler.handle_files(events)
-        path = Path("../dt")
-        if path.exists():
-            os.remove(path)
-        bashiri = Bashiri(handler, CausalTree(), events)
-        bashiri.fit(
-            bashiri.all_features,
-            handler,
-        )
-        obe_time = time.time() - obe_time
-        report_eval, confusion = bashiri.evaluate(
-            eval_handler,
-            output_dict=True,
-        )
-        mapping_eval, mapping_confusion = bashiri.evaluate(
-            mapping_handler,
-            output_dict=True,
-        )
-        result["eval"] = report_eval
-        result["mapping_eval"] = mapping_eval
-        result["time"] = obe_time
-        result["confusion"] = confusion
-        result["mapping_confusion"] = mapping_confusion
+            inputs = []
+            for file in os.listdir(TRAINING):
+                with open(TRAINING / file, "r") as fp:
+                    inputs.append(fp.read())
+            logging.info(f"Training and evaluating initial oracle")
+            obe_time = time.time()
+            # do not split input with shlex for cookiecutter
+            collector = Tests4PyEventCollector(
+                TEST_DIR,
+                location,
+                progress=True,
+                split=project.project_name != "cookiecutter",
+                mapping=mapping_path,
+            )
+            events = collector.get_events(inputs)
+            time.sleep(1)
+            handler = EventHandler()
+            handler.handle_files(events)
+            path = Path("../dt")
+            if path.exists():
+                os.remove(path)
+            bashiri = Bashiri(handler, CausalTree(), events)
+            bashiri.fit(
+                bashiri.all_features,
+                handler,
+            )
+            obe_time = time.time() - obe_time
+            report_eval, confusion = bashiri.evaluate(
+                eval_handler,
+                output_dict=True,
+            )
+            mapping_eval, mapping_confusion = bashiri.evaluate(
+                mapping_handler,
+                output_dict=True,
+            )
+            result["eval"] = report_eval
+            result["mapping_eval"] = mapping_eval
+            result["time"] = obe_time
+            result["confusion"] = confusion
+            result["mapping_confusion"] = mapping_confusion
 
-        results[f"tests_{t}_failing_{f}"] = result
+            results[f"tests_{i}_{t}_failing_{f}"] = result
 
     with open(RESULTS_PATH / f"{project.get_identifier()}.json", "w") as fp:
         json.dump(results, fp, indent=2)
