@@ -22,7 +22,7 @@ from bashiri.learning import Bashiri, Oracle, Label, CausalTree
 from bashiri.refinement import (
     DifferenceInterestRefinement,
 )
-from run_on_tests4py import Tests4PyEventCollector, N, F, SEED, MAPPING
+from run_on_tests4py import Tests4PyEventCollector, SEED, MAPPING
 
 TMP = Path("tmp_tests")
 TEST_DIR = TMP / "test_dir"
@@ -33,6 +33,8 @@ TRAINING = TMP / "train"
 EVALUATION = TMP / "eval"
 
 RLS = [50]
+N = 100
+F = 50
 
 RESULTS_PATH = Path("results")
 

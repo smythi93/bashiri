@@ -39,8 +39,8 @@ EVALUATION_FIXED = TMP / "eval_fixed"
 FIXED_DIR = TMP / "fixed"
 MAPPING = Path("mappings")
 
-N = 100
-F = 50
+N = 200
+F = 100
 SEED = 42
 
 REP = 5
