@@ -107,12 +107,12 @@ def main(refinement: bool = False):
     per_subject = dict()
     for path in [
         MIDDLE_1,
-        MIDDLE_2,
-        FASTAPI_1,
-        PYSNOOPER_2,
         PYSNOOPER_3,
         COOKIECUTTER_3,
+        PYSNOOPER_2,
+        FASTAPI_1,
         COOKIECUTTER_4,
+        MIDDLE_2,
         COOKIECUTTER_2,
     ]:
         if refinement:
