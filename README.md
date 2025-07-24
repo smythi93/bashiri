@@ -4,14 +4,17 @@ BASHIRI is an approach to infer failure oracles from a small test suite automati
 
 ## Abstract
 
-When fixing a program-be it manually or through automated repair-it is crucial that the fix (1) entirely fixes previously failing runs and (2) does not impact previously passing runs.
-Both properties are typically validated by a _test suite_ that leverages _oracles_ to determine if a run is passing or failing.
-   
-We introduce _BASHIRI_, an approach that deduces _failure oracles_ from existing test suites with labeled outcomes.
-_BASHIRI_ is build on execution-feature-driven debugging, that collects features describing the execution of a program to infer a diagnosis. 
-Our approach extends this idea combined with causal learning to produce a testing oracle.
-   
-In our evaluation, the oracles learned by _BASHIRI_ predicted test outcomes with 95% accuracy, demonstrating the approach's effectiveness and quality of the learned oracles.
+Program fixes must preserve passing tests while fixing failing ones. Validating these properties requires _test oracles_ that distinguish passing from failing runs.
+	
+We introduce _BASHIRI_, an approach that learns _failure oracles_ from test suites with labeled outcomes using execution features. _BASHIRI_ leverages execution-feature-driven debugging to collect program execution features and trains interpretable models as testing oracles.
+
+Our evaluation shows that _BASHIRI_ predicts test outcomes with 95% accuracy, effectively identifying failing runs.
+	
+_BASHIRI_ is available as an open-source tool at
+https://github.com/smythi93/bashiri
+
+A demonstration video is available at
+https://youtu.be/D2mJkCtSXtM
 
 ## Installation
 
