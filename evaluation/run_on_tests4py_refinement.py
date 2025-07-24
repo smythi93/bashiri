@@ -17,8 +17,9 @@ from tests4py import sfl
 from tests4py.projects import Project
 from tqdm import tqdm
 
+from bashiri import Bashiri, Mode
 from bashiri.events import EventCollector
-from bashiri.learning import Bashiri, Oracle, Label, CausalTree
+from bashiri.learning import Label
 from bashiri.refinement import (
     DifferenceInterestRefinement,
 )
@@ -102,21 +103,19 @@ def evaluate_project(project: Project):
             split=project.project_name != "cookiecutter",
             mapping=mapping_path,
         )
-        events = collector.get_events(inputs)
-        time.sleep(1)
-        handler = EventHandler()
-        handler.handle_files(events)
-        all_features = handler.builder.get_all_features()
         path = Path("../dt")
         if path.exists():
             os.remove(path)
-        oracle = Bashiri(handler, CausalTree(), events)
-        oracle.fit(
-            all_features,
-            handler,
+        bashiri = Bashiri(
+            path=path,
+            tests=inputs,
+            random_state=SEED,
+            collector=collector,
+            mode=Mode.CUSTOM,
         )
+        bashiri.learn()
         obe_time = time.time() - obe_time
-        report_eval, confusion = oracle.evaluate(
+        report_eval, confusion = bashiri.evaluate(
             eval_handler,
             output_dict=True,
         )
@@ -129,11 +128,16 @@ def evaluate_project(project: Project):
             logging.info(
                 f"Refining and evaluating initial oracle with {gens} generations"
             )
-            refinement_oracle = Bashiri(handler, CausalTree(), events)
-            refinement_oracle.fit(all_features, handler)
+            refinement_oracle = Bashiri(
+                path=path,
+                tests=inputs,
+                random_state=SEED,
+                collector=collector,
+                mode=Mode.CUSTOM,
+            )
+            refinement_oracle.learn()
             refinement_time = time.time()
             refinement_loop = Tests4PyEvaluationRefinement(
-                handler.copy(),
                 refinement_oracle,
                 {i: args for i, args in enumerate(inputs)},
                 # do not split input with shlex for cookiecutter
@@ -166,7 +170,7 @@ def evaluate_project(project: Project):
                 )
             )
             if refinement_loop.new_feature_vectors:
-                report_new, confusion_new = oracle.evaluate_vectors(
+                report_new, confusion_new = bashiri.evaluate_vectors(
                     refinement_loop.new_feature_vectors, output_dict=True
                 )
                 refinement_results["eval_new"] = report_new
@@ -182,8 +186,7 @@ def evaluate_project(project: Project):
 class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, str],
         collector: EventCollector,
         iterations: int = 10,
@@ -194,7 +197,6 @@ class Tests4PyEvaluationRefinement(DifferenceInterestRefinement):
         threshold: float = 0.05,
     ):
         super().__init__(
-            handler,
             oracle,
             seeds,
             collector,

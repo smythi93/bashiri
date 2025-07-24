@@ -33,7 +33,6 @@ dependencies = [
     "tests4py >= 0.0.13",
     "pytest >= 8.3.4",
     "sflkit >= 0.4.0",
-    "causalml >= 0.15.3",
 ]
 
 [sources]

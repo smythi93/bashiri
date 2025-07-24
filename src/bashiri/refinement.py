@@ -8,8 +8,9 @@ from sflkit.features.vector import FeatureVector
 from sflkit.model.model import Model
 from sflkit.runners.run import TestResult
 
+from bashiri import Bashiri
 from bashiri.events import EventCollector
-from bashiri.learning import Oracle, Label
+from bashiri.learning import Label
 
 
 def copy(self):
@@ -25,13 +26,12 @@ EventHandler.copy = copy
 class RefinementLoop(ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, str],
         iterations: int = 10,
     ):
-        self.handler = handler
-        self.features = handler.builder
+        self.handler = oracle.handler
+        self.features = oracle.handler.builder
         self.learned_oracle = oracle
         self.seeds = dict()
         for s in seeds:
@@ -55,14 +55,13 @@ class RefinementLoop(ABC):
 class TestGenRefinement(RefinementLoop, ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, str],
         collector: EventCollector,
         iterations: int = 10,
         gens: int = 10,
     ):
-        super().__init__(handler, oracle, seeds, iterations=iterations)
+        super().__init__(oracle, seeds, iterations=iterations)
         self.collector = collector
         self.gens = gens
 
@@ -109,8 +108,7 @@ class TestGenRefinement(RefinementLoop, ABC):
 class MutationTestGenRefinement(TestGenRefinement, ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
         iterations: int = 10,
@@ -118,9 +116,7 @@ class MutationTestGenRefinement(TestGenRefinement, ABC):
         min_mutations: int = 1,
         max_mutations: int = 10,
     ):
-        super().__init__(
-            handler, oracle, seeds, collector, iterations=iterations, gens=gens
-        )
+        super().__init__(oracle, seeds, collector, iterations=iterations, gens=gens)
         if min_mutations > max_mutations:
             raise ValueError(
                 f"min_mutations needs to be smaller than max_mutations but was "
@@ -155,8 +151,7 @@ class MutationTestGenRefinement(TestGenRefinement, ABC):
 class StringMutationTestGenRefinement(MutationTestGenRefinement, ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
         iterations: int = 10,
@@ -166,7 +161,6 @@ class StringMutationTestGenRefinement(MutationTestGenRefinement, ABC):
         max_range: int = 10,
     ):
         super().__init__(
-            handler,
             oracle,
             seeds,
             collector,
@@ -288,8 +282,7 @@ class Seed(str):
 class AFLRefinement(StringMutationTestGenRefinement, ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
         iterations: int = 10,
@@ -298,7 +291,6 @@ class AFLRefinement(StringMutationTestGenRefinement, ABC):
         max_mutations: int = 10,
     ):
         super().__init__(
-            handler,
             oracle,
             seeds,
             collector,
@@ -345,8 +337,7 @@ class AFLRefinement(StringMutationTestGenRefinement, ABC):
 class AFLFastRefinement(AFLRefinement, ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, List[str]],
         collector: EventCollector,
         iterations: int = 10,
@@ -356,7 +347,6 @@ class AFLFastRefinement(AFLRefinement, ABC):
         exponent: float = 5,
     ):
         super().__init__(
-            handler,
             oracle,
             seeds,
             collector,
@@ -391,8 +381,7 @@ class AFLFastRefinement(AFLRefinement, ABC):
 class DifferenceInterestRefinement(AFLFastRefinement, ABC):
     def __init__(
         self,
-        handler: EventHandler,
-        oracle: Oracle,
+        oracle: Bashiri,
         seeds: Dict[int, str],
         collector: EventCollector,
         iterations: int = 10,
@@ -403,7 +392,6 @@ class DifferenceInterestRefinement(AFLFastRefinement, ABC):
         threshold: float = 0.05,
     ):
         super().__init__(
-            handler,
             oracle,
             seeds,
             collector,

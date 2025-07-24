@@ -24,34 +24,27 @@ python -m pip install .
 
 For BASHIRI, you need to instrument your subject.
 ```python
-instrument("middle.py", "tmp.py")
+instrument("middle.py", "tmp.py", "middle.json")
 ```
 Next, you need some tests to execute and collect their event traces. 
 We provide two collectors, one for unit tests and one for input to the program.
 However, implementing another collector by inheriting the base class `EventCollector` and implementing its `collect()` method is an option.
 To employ the collector, use it like this:
 ```python
-collector = SystemtestEventCollector(os.getcwd(), "tmp.py")
-events = collector.get_events((passing, failing))
-```
-In this example, we leverage the input event collector. `passing` and `failing` are lists of passing and failing inputs, respectively.
-
-Next, you can utilize the event handler to extract and build feature vectors from the event traces.
-```python
-handler = EventHandler()
-handler.handle_files(events)
-```
-
-Now, we can leverage BASHIRI's learning to infer a failure oracle.
-```python
-bashiri = Bashiri(handler, CausalTree(), events)
-bashiri.fit(
-    bashiri.all_features,
-    handler,
+oracle = Bashiri(
+    "middle.py",
+    (passing, failing),
+    access="tmp.py",
+    mapping="middle.json",
+    work_dir=".",
 )
+oracle.learn()
 ``` 
 
 Now, we can leverage the collector, handle, and oracle to identify the result of an unseen execution/test case with high accuracy.
+```python
+result = oracle.predict(unseen_test)
+```
 
 ## Mapping
 
@@ -74,9 +67,14 @@ translation_mapping = EventMapping(
 We have additionally implemented a mechanism to incorporate a human oracle to enrich insufficient test sets in the `HumanOracleRefinement` class.
 ```python
 seeds = {i: s, for i, s in enumerate(passing + failing)}
-refinement = HumanOracleRefinement(handler, oracle, seeds, collector)
+refinement = HumanOracleRefinement(oracle, seeds, collector)
 refinement.run()
 ```
+
+# Example
+
+We have provided a short example in the `example.ipynb` notebook.
+This notebook demonstrates how to use BASHIRI with a simple example, including instrumentation, test collection, and oracle learning.
 
 # License
 

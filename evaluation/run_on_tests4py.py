@@ -23,7 +23,7 @@ from tests4py.projects import Project
 from tqdm import tqdm
 
 from bashiri.events import EventCollector
-from bashiri.learning import Bashiri, CausalTree
+from bashiri import Bashiri, Mode
 from bashiri.mapping.mapping import Mapping, MappingCreator
 from bashiri.mapping.patch import PatchTranslator
 
@@ -183,18 +183,17 @@ def evaluate_project(project: Project):
                 split=project.project_name != "cookiecutter",
                 mapping=mapping_path,
             )
-            events = collector.get_events(inputs)
-            time.sleep(1)
-            handler = EventHandler()
-            handler.handle_files(events)
             path = Path("../dt")
             if path.exists():
                 os.remove(path)
-            bashiri = Bashiri(handler, CausalTree(), events)
-            bashiri.fit(
-                bashiri.all_features,
-                handler,
+            bashiri = Bashiri(
+                path=path,
+                tests=inputs,
+                random_state=SEED,
+                collector=collector,
+                mode=Mode.CUSTOM,
             )
+            bashiri.learn()
             obe_time = time.time() - obe_time
             report_eval, confusion = bashiri.evaluate(
                 eval_handler,
