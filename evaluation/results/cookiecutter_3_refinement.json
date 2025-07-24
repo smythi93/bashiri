@@ -1,0 +1,285 @@
+{
+  "0": {
+    "eval": {
+      "0": {
+        "precision": 0.6,
+        "recall": 0.12,
+        "f1-score": 0.2,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 0.5111111111111111,
+        "recall": 0.92,
+        "f1-score": 0.6571428571428571,
+        "support": 50.0
+      },
+      "accuracy": 0.52,
+      "macro avg": {
+        "precision": 0.5555555555555556,
+        "recall": 0.52,
+        "f1-score": 0.4285714285714286,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 0.5555555555555556,
+        "recall": 0.52,
+        "f1-score": 0.42857142857142855,
+        "support": 100.0
+      }
+    },
+    "time": 2.4379591941833496,
+    "confusion": [
+      [
+        6,
+        44
+      ],
+      [
+        4,
+        46
+      ]
+    ],
+    "refinement": {
+      "50": {
+        "eval": {
+          "0": {
+            "precision": 0.6,
+            "recall": 0.12,
+            "f1-score": 0.2,
+            "support": 50.0
+          },
+          "1": {
+            "precision": 0.5111111111111111,
+            "recall": 0.92,
+            "f1-score": 0.6571428571428571,
+            "support": 50.0
+          },
+          "accuracy": 0.52,
+          "macro avg": {
+            "precision": 0.5555555555555556,
+            "recall": 0.52,
+            "f1-score": 0.4285714285714286,
+            "support": 100.0
+          },
+          "weighted avg": {
+            "precision": 0.5555555555555556,
+            "recall": 0.52,
+            "f1-score": 0.42857142857142855,
+            "support": 100.0
+          }
+        },
+        "time": 126.97788715362549,
+        "confusion": [
+          [
+            6,
+            44
+          ],
+          [
+            4,
+            46
+          ]
+        ],
+        "new": 0,
+        "failing": 0
+      }
+    }
+  },
+  "1": {
+    "eval": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 100.0
+      }
+    },
+    "time": 2.689732074737549,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        0,
+        50
+      ]
+    ],
+    "refinement": {
+      "50": {
+        "eval": {
+          "0": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 50.0
+          },
+          "1": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 50.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 100.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 100.0
+          }
+        },
+        "time": 135.7151758670807,
+        "confusion": [
+          [
+            50,
+            0
+          ],
+          [
+            0,
+            50
+          ]
+        ],
+        "new": 1,
+        "failing": 0,
+        "eval_new": {
+          "0": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1.0
+          }
+        },
+        "confusion_new": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      }
+    }
+  },
+  "2": {
+    "eval": {
+      "0": {
+        "precision": 0.9259259259259259,
+        "recall": 1.0,
+        "f1-score": 0.9615384615384616,
+        "support": 50.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 0.92,
+        "f1-score": 0.9583333333333334,
+        "support": 50.0
+      },
+      "accuracy": 0.96,
+      "macro avg": {
+        "precision": 0.962962962962963,
+        "recall": 0.96,
+        "f1-score": 0.9599358974358975,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 0.962962962962963,
+        "recall": 0.96,
+        "f1-score": 0.9599358974358975,
+        "support": 100.0
+      }
+    },
+    "time": 2.789034843444824,
+    "confusion": [
+      [
+        50,
+        0
+      ],
+      [
+        4,
+        46
+      ]
+    ],
+    "refinement": {
+      "50": {
+        "eval": {
+          "0": {
+            "precision": 0.9259259259259259,
+            "recall": 1.0,
+            "f1-score": 0.9615384615384616,
+            "support": 50.0
+          },
+          "1": {
+            "precision": 1.0,
+            "recall": 0.92,
+            "f1-score": 0.9583333333333334,
+            "support": 50.0
+          },
+          "accuracy": 0.96,
+          "macro avg": {
+            "precision": 0.962962962962963,
+            "recall": 0.96,
+            "f1-score": 0.9599358974358975,
+            "support": 100.0
+          },
+          "weighted avg": {
+            "precision": 0.962962962962963,
+            "recall": 0.96,
+            "f1-score": 0.9599358974358975,
+            "support": 100.0
+          }
+        },
+        "time": 138.41626691818237,
+        "confusion": [
+          [
+            50,
+            0
+          ],
+          [
+            4,
+            46
+          ]
+        ],
+        "new": 0,
+        "failing": 0
+      }
+    }
+  }
+}
